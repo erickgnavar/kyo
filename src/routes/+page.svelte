@@ -1,9 +1,9 @@
 <script lang="ts">
-  import CardModal from "$lib/CardModal.svelte";
   import CardForm from "$lib/CardForm.svelte";
   import CardListOverlay from "$lib/CardListOverlay.svelte";
+  import CardModal from "$lib/CardModal.svelte";
+  import { type CardStore, createInMemoryCardStore } from "$lib/card-store";
   import type { Card, ColumnId } from "$lib/types.ts";
-  import { createInMemoryCardStore, type CardStore } from "$lib/card-store";
 
   type ColumnView = { id: string; title: string };
 
@@ -247,8 +247,10 @@
   <header class="header">
     <h1>kyo</h1>
     <span class="shortcut-hint">
-      <kbd>?</kbd> help
-      <kbd>n</kbd> new card
+      <kbd>?</kbd>
+      help
+      <kbd>n</kbd>
+      new card
       <button class="archive-btn" onclick={() => (showArchived = !showArchived)}>
         archived ({archivedCards.length})
       </button>
@@ -281,7 +283,9 @@
           {/each}
         </div>
         {#if col.id === "backlog"}
-          <button type="button" class="add-btn" onclick={openNewForBacklog}>+ Add to Backlog</button>
+          <button type="button" class="add-btn" onclick={openNewForBacklog}>
+            + Add to Backlog
+          </button>
         {/if}
       </div>
     {/each}
@@ -307,12 +311,29 @@
   <div class="overlay" onclick={() => (showNewDialog = false)}>
     <div class="dialog" onclick={(e) => e.stopPropagation()}>
       <h3>New Card</h3>
-      <CardForm bind:name={formName} bind:content={formContent} bind:tags={formTags} bind:dueDate={formDueDate} />
+      <CardForm
+        bind:name={formName}
+        bind:content={formContent}
+        bind:tags={formTags}
+        bind:dueDate={formDueDate}
+      />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
         <div>
-          <button type="button" class="btn primary" onclick={() => { newTargetCol = "today"; submitNewCard(); }}>Add to Today</button>
-          <button type="button" class="btn primary" onclick={() => { newTargetCol = "backlog"; submitNewCard(); }}>Add to Backlog</button>
+          <button
+            type="button"
+            class="btn primary"
+            onclick={() => { newTargetCol = "today"; submitNewCard(); }}
+          >
+            Add to Today
+          </button>
+          <button
+            type="button"
+            class="btn primary"
+            onclick={() => { newTargetCol = "backlog"; submitNewCard(); }}
+          >
+            Add to Backlog
+          </button>
         </div>
       </div>
     </div>
@@ -324,7 +345,13 @@
   <div class="overlay" onclick={() => (showEditDialog = false)}>
     <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()}>
       <h3>Edit Card</h3>
-      <CardForm bind:name={formName} bind:content={formContent} bind:tags={formTags} bind:dueDate={formDueDate} editMode />
+      <CardForm
+        bind:name={formName}
+        bind:content={formContent}
+        bind:tags={formTags}
+        bind:dueDate={formDueDate}
+        editMode
+      />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showEditDialog = false)}>Cancel</button>
         <button type="button" class="btn primary" onclick={submitEdit}>Save</button>
@@ -354,20 +381,62 @@
       <h3>Keyboard Shortcuts</h3>
       <table>
         <tbody>
-          <tr><td><kbd>j</kbd> / <kbd>k</kbd></td><td>Move selection up / down</td></tr>
-          <tr><td><kbd>⇧J</kbd></td><td>Move card down in list</td></tr>
-          <tr><td><kbd>⇧K</kbd></td><td>Move card up in list</td></tr>
-          <tr><td><kbd>h</kbd> / <kbd>l</kbd></td><td>Focus column left / right</td></tr>
-          <tr><td><kbd>t</kbd></td><td>Move card to <strong>Today</strong></td></tr>
-          <tr><td><kbd>b</kbd></td><td>Move card to <strong>Backlog</strong></td></tr>
-          <tr><td><kbd>Enter</kbd></td><td>Open card (read-only)</td></tr>
-          <tr><td><kbd>e</kbd> (in card)</td><td>Switch to edit mode</td></tr>
-          <tr><td><kbd>e</kbd></td><td>Edit card</td></tr>
-          <tr><td><kbd>x</kbd></td><td>Mark card done</td></tr>
-          <tr><td><kbd>d</kbd></td><td>Archive card</td></tr>
-          <tr><td><kbd>a</kbd></td><td>Toggle archived view</td></tr>
-          <tr><td><kbd>n</kbd></td><td>New card</td></tr>
-          <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+          <tr>
+            <td><kbd>j</kbd> / <kbd>k</kbd></td>
+            <td>Move selection up / down</td>
+          </tr>
+          <tr>
+            <td><kbd>⇧J</kbd></td>
+            <td>Move card down in list</td>
+          </tr>
+          <tr>
+            <td><kbd>⇧K</kbd></td>
+            <td>Move card up in list</td>
+          </tr>
+          <tr>
+            <td><kbd>h</kbd> / <kbd>l</kbd></td>
+            <td>Focus column left / right</td>
+          </tr>
+          <tr>
+            <td><kbd>t</kbd></td>
+            <td>Move card to <strong>Today</strong></td>
+          </tr>
+          <tr>
+            <td><kbd>b</kbd></td>
+            <td>Move card to <strong>Backlog</strong></td>
+          </tr>
+          <tr>
+            <td><kbd>Enter</kbd></td>
+            <td>Open card (read-only)</td>
+          </tr>
+          <tr>
+            <td><kbd>e</kbd> (in card)</td>
+            <td>Switch to edit mode</td>
+          </tr>
+          <tr>
+            <td><kbd>e</kbd></td>
+            <td>Edit card</td>
+          </tr>
+          <tr>
+            <td><kbd>x</kbd></td>
+            <td>Mark card done</td>
+          </tr>
+          <tr>
+            <td><kbd>d</kbd></td>
+            <td>Archive card</td>
+          </tr>
+          <tr>
+            <td><kbd>a</kbd></td>
+            <td>Toggle archived view</td>
+          </tr>
+          <tr>
+            <td><kbd>n</kbd></td>
+            <td>New card</td>
+          </tr>
+          <tr>
+            <td><kbd>?</kbd></td>
+            <td>Toggle this help</td>
+          </tr>
         </tbody>
       </table>
       <button class="btn primary" onclick={() => (showHelp = false)}>Close</button>
@@ -400,7 +469,11 @@
 
 <style>
   /* --- reset / global --- */
-  :global(*) { margin: 0; padding: 0; box-sizing: border-box; }
+  :global(*) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
   :global(body) {
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 14px;
@@ -409,123 +482,302 @@
     overflow: hidden;
     height: 100vh;
   }
-  .app { display: flex; flex-direction: column; height: 100vh; }
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
   /* --- header --- */
   .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; background: #16213e;
-    border-bottom: 1px solid #0f3460; flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #16213e;
+    border-bottom: 1px solid #0f3460;
+    flex-shrink: 0;
   }
-  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.05em; color: #e94560; }
-  .shortcut-hint { font-size: 12px; color: #888; }
-  .shortcut-hint kbd { margin: 0 2px 0 6px; }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #e94560;
+  }
+  .shortcut-hint {
+    font-size: 12px;
+    color: #888;
+  }
+  .shortcut-hint kbd {
+    margin: 0 2px 0 6px;
+  }
 
   /* --- columns --- */
   .columns {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 12px; padding: 12px; flex: 1; min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 12px;
+    flex: 1;
+    min-height: 0;
   }
   .column {
-    display: flex; flex-direction: column; background: #16213e;
-    border-radius: 8px; border: 1px solid #0f3460;
-    overflow: hidden; opacity: 0.45; transition: opacity 0.1s;
+    display: flex;
+    flex-direction: column;
+    background: #16213e;
+    border-radius: 8px;
+    border: 1px solid #0f3460;
+    overflow: hidden;
+    opacity: 0.45;
+    transition: opacity 0.1s;
   }
-  .column.active { border-color: #e94560; opacity: 1; }
+  .column.active {
+    border-color: #e94560;
+    opacity: 1;
+  }
   .column-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; background: #1a1a2e;
-    border-bottom: 1px solid #0f3460; flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #1a1a2e;
+    border-bottom: 1px solid #0f3460;
+    flex-shrink: 0;
   }
-  .column-header h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .column-header h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
   .count {
-    font-size: 12px; background: #0f3460; color: #aaa;
-    border-radius: 10px; padding: 1px 8px;
+    font-size: 12px;
+    background: #0f3460;
+    color: #aaa;
+    border-radius: 10px;
+    padding: 1px 8px;
   }
 
   /* --- card list --- */
-  .card-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .card {
-    display: block; width: 100%; text-align: left; background: #1a1a2e;
-    border: 1px solid #0f3460; border-radius: 6px;
-    padding: 10px 12px; cursor: pointer; color: inherit; font: inherit;
+  .card-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-  .card:hover { background: #1e2a4a; }
-  .card.selected { border-color: #e94560; background: #1e2a4a; }
-  .card.working { border-left: 4px solid #e94560; border-color: #e94560; background: #263050; }
-  .card.working .card-name { color: #fff; font-weight: 600; }
-  .card.selected.working { border-color: #e94560; background: #2d3858; }
-  .card-name { font-weight: 500; font-size: 14px; }
-  .empty { text-align: center; color: #555; font-size: 12px; padding: 20px 0; }
+  .card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #1a1a2e;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  .card:hover {
+    background: #1e2a4a;
+  }
+  .card.selected {
+    border-color: #e94560;
+    background: #1e2a4a;
+  }
+  .card.working {
+    border-left: 4px solid #e94560;
+    border-color: #e94560;
+    background: #263050;
+  }
+  .card.working .card-name {
+    color: #fff;
+    font-weight: 600;
+  }
+  .card.selected.working {
+    border-color: #e94560;
+    background: #2d3858;
+  }
+  .card-name {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .empty {
+    text-align: center;
+    color: #555;
+    font-size: 12px;
+    padding: 20px 0;
+  }
 
   /* --- add btn --- */
   .add-btn {
-    margin: 8px; padding: 8px; border: 1px dashed #0f3460; border-radius: 6px;
-    background: transparent; color: #888; font: inherit; font-size: 12px;
-    cursor: pointer; flex-shrink: 0;
+    margin: 8px;
+    padding: 8px;
+    border: 1px dashed #0f3460;
+    border-radius: 6px;
+    background: transparent;
+    color: #888;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
   }
-  .add-btn:hover { border-color: #e94560; color: #e0e0e0; }
+  .add-btn:hover {
+    border-color: #e94560;
+    color: #e0e0e0;
+  }
 
   /* --- footer --- */
   .footer {
-    display: flex; align-items: center; gap: 14px;
-    padding: 8px 16px; background: #16213e;
-    border-top: 1px solid #0f3460; font-size: 11px; color: #666; flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 16px;
+    background: #16213e;
+    border-top: 1px solid #0f3460;
+    font-size: 11px;
+    color: #666;
+    flex-shrink: 0;
   }
-  .footer kbd { font-size: 10px; margin-right: 3px; }
-  .footer span + span::before { content: "·"; margin-right: 14px; color: #444; }
+  .footer kbd {
+    font-size: 10px;
+    margin-right: 3px;
+  }
+  .footer span + span::before {
+    content: "·";
+    margin-right: 14px;
+    color: #444;
+  }
 
   /* --- overlay / dialog --- */
   .overlay {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
-    display: flex; align-items: center; justify-content: center; z-index: 100;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
   }
   .dialog {
-    background: #16213e; border: 1px solid #0f3460; border-radius: 10px;
-    padding: 24px; min-width: 400px; max-width: 480px;
-    display: flex; flex-direction: column; gap: 14px;
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 24px;
+    min-width: 400px;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
-  .dialog h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .edit-dialog { min-width: 600px; max-width: 640px; min-height: 500px; }
-  .edit-dialog .dialog-actions { margin-top: auto; }
+  .dialog h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .edit-dialog {
+    min-width: 600px;
+    max-width: 640px;
+    min-height: 500px;
+  }
+  .edit-dialog .dialog-actions {
+    margin-top: auto;
+  }
 
   .dialog input[type="text"],
   .dialog textarea,
   .dialog input[type="date"] {
-    background: #1a1a2e; border: 1px solid #0f3460; border-radius: 6px;
-    padding: 8px 10px; color: #e0e0e0; font: inherit; font-size: 13px; outline: none;
+    background: #1a1a2e;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #e0e0e0;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
   }
-  .dialog input:focus, .dialog textarea:focus { border-color: #e94560; }
-  .dialog textarea { resize: vertical; }
+  .dialog input:focus,
+  .dialog textarea:focus {
+    border-color: #e94560;
+  }
+  .dialog textarea {
+    resize: vertical;
+  }
 
   .dialog-actions {
-    display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
   }
-  .dialog-actions > div { display: flex; gap: 8px; }
+  .dialog-actions > div {
+    display: flex;
+    gap: 8px;
+  }
 
   .btn {
-    padding: 8px 16px; border: 1px solid #0f3460; border-radius: 6px;
-    background: transparent; color: #ccc; font: inherit; font-size: 13px; cursor: pointer;
+    padding: 8px 16px;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    background: transparent;
+    color: #ccc;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
   }
-  .btn:hover { background: #1e2a4a; }
-  .btn.primary { background: #e94560; border-color: #e94560; color: #fff; }
-  .btn.primary:hover { background: #d63851; }
+  .btn:hover {
+    background: #1e2a4a;
+  }
+  .btn.primary {
+    background: #e94560;
+    border-color: #e94560;
+    color: #fff;
+  }
+  .btn.primary:hover {
+    background: #d63851;
+  }
 
   /* --- help --- */
-  .help-dialog { min-width: 360px; }
-  .help-dialog table { width: 100%; border-collapse: collapse; }
-  .help-dialog td { padding: 6px 0; font-size: 13px; border-bottom: 1px solid #0f3460; }
-  .help-dialog td:first-child { white-space: nowrap; padding-right: 20px; }
+  .help-dialog {
+    min-width: 360px;
+  }
+  .help-dialog table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .help-dialog td {
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #0f3460;
+  }
+  .help-dialog td:first-child {
+    white-space: nowrap;
+    padding-right: 20px;
+  }
   .help-dialog kbd {
-    font-size: 11px; background: #1a1a2e;
-    border: 1px solid #0f3460; border-radius: 3px; padding: 1px 5px;
+    font-size: 11px;
+    background: #1a1a2e;
+    border: 1px solid #0f3460;
+    border-radius: 3px;
+    padding: 1px 5px;
   }
 
   /* --- archive button in header --- */
   .archive-btn {
-    background: transparent; border: 1px solid #0f3460; border-radius: 4px;
-    color: #888; font: inherit; font-size: 11px; padding: 2px 8px;
-    cursor: pointer; margin-left: 6px;
+    background: transparent;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    color: #888;
+    font: inherit;
+    font-size: 11px;
+    padding: 2px 8px;
+    cursor: pointer;
+    margin-left: 6px;
   }
-  .archive-btn:hover { border-color: #e94560; color: #e0e0e0; }
+  .archive-btn:hover {
+    border-color: #e94560;
+    color: #e0e0e0;
+  }
 </style>

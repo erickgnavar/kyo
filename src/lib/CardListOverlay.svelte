@@ -1,16 +1,23 @@
 <script lang="ts">
   import type { Card } from "$lib/types.ts";
 
-  let { title, cards, onclose, restore, label = "Restore", secondaryRestore, secondaryLabel }:
-    {
-      title: string;
-      cards: Card[];
-      onclose: () => void;
-      restore: (card: Card) => void;
-      label?: string;
-      secondaryRestore?: (card: Card) => void;
-      secondaryLabel?: string;
-    } = $props();
+  let {
+    title,
+    cards,
+    onclose,
+    restore,
+    label = "Restore",
+    secondaryRestore,
+    secondaryLabel,
+  }: {
+    title: string;
+    cards: Card[];
+    onclose: () => void;
+    restore: (card: Card) => void;
+    label?: string;
+    secondaryRestore?: (card: Card) => void;
+    secondaryLabel?: string;
+  } = $props();
 </script>
 
 <div class="overlay" onclick={onclose}>

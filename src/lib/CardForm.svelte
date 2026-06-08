@@ -1,12 +1,17 @@
 <script lang="ts">
-  let { name = $bindable(""), content = $bindable(""), tags = $bindable(""), dueDate = $bindable(""), editMode = false }:
-    {
-      name?: string;
-      content?: string;
-      tags?: string;
-      dueDate?: string;
-      editMode?: boolean;
-    } = $props();
+  let {
+    name = $bindable(""),
+    content = $bindable(""),
+    tags = $bindable(""),
+    dueDate = $bindable(""),
+    editMode = false,
+  }: {
+    name?: string;
+    content?: string;
+    tags?: string;
+    dueDate?: string;
+    editMode?: boolean;
+  } = $props();
 </script>
 
 <label>

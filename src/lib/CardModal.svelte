@@ -1,7 +1,13 @@
 <script lang="ts">
   import type { Card, ColumnId } from "$lib/types.ts";
 
-  let { card, columns, onclose, onedit, ondone }: {
+  let {
+    card,
+    columns,
+    onclose,
+    onedit,
+    ondone,
+  }: {
     card: Card;
     columns: { id: ColumnId; title: string }[];
     onclose: () => void;

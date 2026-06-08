@@ -15,13 +15,7 @@ export interface CardStore {
   getArchived(): Card[];
   getDone(): Card[];
 
-  add(
-    col: ColumnId,
-    name: string,
-    content: string,
-    tags: string[],
-    dueDate?: string,
-  ): Card;
+  add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string): Card;
   update(
     id: string,
     data: {
@@ -48,8 +42,7 @@ function sampleCards(): Card[] {
     {
       id: "1",
       name: "Setup CI/CD pipeline",
-      content:
-        "Configure GitHub Actions for the project. Need to set up tests and deployment.",
+      content: "Configure GitHub Actions for the project. Need to set up tests and deployment.",
       tags: ["devops", "setup"],
       column: "today",
       createdAt: Date.now() - 7200000,
@@ -139,13 +132,7 @@ export function createInMemoryCardStore(): CardStore {
       return _cards.filter((c) => c.done);
     },
 
-    add(
-      col: ColumnId,
-      name: string,
-      content: string,
-      tags: string[],
-      dueDate?: string,
-    ) {
+    add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
       const card: Card = {
         id: String(_nextId++),
         name,
@@ -157,9 +144,7 @@ export function createInMemoryCardStore(): CardStore {
       };
 
       if (col === "today") {
-        const todayCards = _cards.filter(
-          (c) => c.column === "today" && !c.archived,
-        );
+        const todayCards = _cards.filter((c) => c.column === "today" && !c.archived);
         if (todayCards.length === 0) {
           _cards = [..._cards, card];
         } else {
@@ -199,11 +184,7 @@ export function createInMemoryCardStore(): CardStore {
       const idx = _cards.findIndex((c) => c.id === id);
       if (idx === -1) return;
       const col = _cards[idx].column;
-      for (
-        let i = idx + direction;
-        i >= 0 && i < _cards.length;
-        i += direction
-      ) {
+      for (let i = idx + direction; i >= 0 && i < _cards.length; i += direction) {
         if (_cards[i].column === col && !_cards[i].archived) {
           const arr = [..._cards];
           [arr[idx], arr[i]] = [arr[i], arr[idx]];
@@ -220,9 +201,7 @@ export function createInMemoryCardStore(): CardStore {
     },
 
     restore(id: string, col: ColumnId) {
-      _cards = _cards.map((c) =>
-        c.id === id ? { ...c, archived: false, column: col } : c,
-      );
+      _cards = _cards.map((c) => (c.id === id ? { ...c, archived: false, column: col } : c));
       _notify();
     },
 
