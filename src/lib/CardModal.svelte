@@ -18,41 +18,49 @@
 
 <div class="overlay" onclick={onclose}>
   <div class="dialog card-dialog" onclick={(e) => e.stopPropagation()}>
-    <div class="card-dialog-header">
+    <!-- header -->
+    <div class="header">
       <h3>{card.name}</h3>
-      <span class="card-dialog-col">{columns.find((c) => c.id === card.column)?.title}</span>
+      <span class="col-badge">{columns.find((c) => c.id === card.column)?.title}</span>
     </div>
 
-    {#if card.content}
-      <div class="card-dialog-section">
-        <label>Content</label>
-        <p class="card-dialog-content">{card.content}</p>
+    <!-- body: main + sidebar -->
+    <div class="body">
+      <div class="main">
+        {#if card.content}
+          <p class="content">{card.content}</p>
+        {:else}
+          <p class="empty-content">No description</p>
+        {/if}
       </div>
-    {/if}
 
-    {#if card.tags.length > 0}
-      <div class="card-dialog-section">
-        <label>Tags</label>
-        <div class="tags">
-          {#each card.tags as tag}
-            <span class="tag">{tag}</span>
-          {/each}
+      <div class="sidebar">
+        {#if card.tags.length > 0}
+          <div class="meta-block">
+            <label>Tags</label>
+            <div class="tags">
+              {#each card.tags as tag}
+                <span class="tag">{tag}</span>
+              {/each}
+            </div>
+          </div>
+        {/if}
+
+        {#if card.dueDate}
+          <div class="meta-block">
+            <label>Due date</label>
+            <span class="due-date">{card.dueDate}</span>
+          </div>
+        {/if}
+
+        <div class="meta-block">
+          <label>Carried over</label>
+          <span class="score">{card.score ?? 0} ×</span>
         </div>
       </div>
-    {/if}
-
-    {#if card.dueDate}
-      <div class="card-dialog-section">
-        <label>Due date</label>
-        <span class="due-date">{card.dueDate}</span>
-      </div>
-    {/if}
-
-    <div class="card-dialog-section">
-      <label>Score</label>
-      <span class="score">{card.score ?? 0}</span>
     </div>
 
+    <!-- actions -->
     <div class="dialog-actions">
       <button type="button" class="btn" onclick={onclose}>Close</button>
       <div>
@@ -85,64 +93,94 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
   }
 
   .card-dialog {
-    min-width: 480px;
-    max-width: 540px;
+    min-width: 600px;
+    max-width: 680px;
+    max-height: 80vh;
   }
 
-  .card-dialog-header {
+  /* --- header --- */
+  .header {
     display: flex;
     align-items: baseline;
+    justify-content: space-between;
     gap: 12px;
-    margin-bottom: 4px;
   }
 
-  .card-dialog-header h3 {
+  .header h3 {
     margin: 0;
-    font-size: 17px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    word-break: break-word;
   }
 
-  .card-dialog-col {
+  .col-badge {
     font-size: 11px;
     color: #e94560;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .card-dialog-section {
+  /* --- body: two columns --- */
+  .body {
+    display: flex;
+    gap: 24px;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .main {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ccc;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  .empty-content {
+    font-size: 13px;
+    color: #555;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .sidebar {
+    width: 160px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .meta-block {
     display: flex;
     flex-direction: column;
     gap: 4px;
   }
 
-  .card-dialog-section label {
-    font-size: 11px;
+  .meta-block label {
+    font-size: 10px;
     color: #888;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-  }
-
-  .card-dialog-content {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #ccc;
-    white-space: pre-wrap;
-  }
-
-  .score {
-    font-size: 20px;
-    font-weight: 700;
-    color: #e94560;
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: 6px;
   }
 
   .tag {
@@ -150,21 +188,33 @@
     background: #0f3460;
     color: #88b4e0;
     border-radius: 4px;
-    padding: 1px 6px;
+    padding: 2px 6px;
   }
 
   .due-date {
-    display: inline-block;
-    font-size: 11px;
+    font-size: 13px;
     color: #e94560;
   }
 
+  .score {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e94560;
+  }
+
+  /* --- actions --- */
   .dialog-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
     margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .dialog-actions > div {
+    display: flex;
+    gap: 8px;
   }
 
   .btn {
