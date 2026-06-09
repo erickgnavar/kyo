@@ -73,6 +73,17 @@
     }
   });
 
+  // scroll selected card into view
+  $effect(() => {
+    // depend on rowIdx and colIdx to re-run on change
+    void visibleCards;
+    const r = rowIdx;
+    const c = colIdx;
+    requestAnimationFrame(() => {
+      document.querySelector(".card.selected")?.scrollIntoView({ block: "nearest" });
+    });
+  });
+
   // --- helpers ---
   function resetForm() {
     formName = "";
