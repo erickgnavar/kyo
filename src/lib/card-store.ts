@@ -32,4 +32,5 @@ export interface CardStore {
   restore(id: string, col: ColumnId): void;
   markDone(id: string): void;
   unmarkDone(id: string): void;
+  endOfDay(): void;
 }

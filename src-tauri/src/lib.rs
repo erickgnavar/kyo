@@ -19,6 +19,7 @@ pub struct Card {
     pub due_date: Option<String>,
     pub archived: Option<bool>,
     pub done: Option<bool>,
+    pub score: i64,
 }
 
 fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
@@ -39,6 +40,7 @@ fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
         done: row
             .get::<_, i32>("done")
             .map(|v| if v == 1 { Some(true) } else { None })?,
+        score: row.get("score")?,
     })
 }
 
@@ -46,7 +48,10 @@ fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
 // Migrations
 // ---------------------------------------------------------------------------
 
-const MIGRATIONS: &[M] = &[M::up(include_str!("../migrations/001_init.sql"))];
+const MIGRATIONS: &[M] = &[
+    M::up(include_str!("../migrations/001_init.sql")),
+    M::up(include_str!("../migrations/002_add_score.sql")),
+];
 
 fn migrate(conn: &mut Connection) {
     Migrations::new(MIGRATIONS.to_vec())
@@ -88,8 +93,10 @@ fn get_cards(db: State<Mutex<Connection>>) -> Vec<Card> {
     let conn = db.lock().unwrap();
     let mut stmt = conn
         .prepare(
-            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done
-             FROM cards ORDER BY sort_order, ROWID",
+            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done, score
+             FROM cards ORDER BY
+               CASE WHEN column_name = 'backlog' THEN -score ELSE 0 END,
+               sort_order",
         )
         .unwrap();
     stmt.query_map([], row_to_card)
@@ -163,8 +170,8 @@ fn add_card(
     };
 
     conn.execute(
-        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, done)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0)",
+        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, done, score)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0, 0)",
         rusqlite::params![id, name, content, tags_json, column, now, sort_order, due_date],
     )
     .unwrap();
@@ -377,6 +384,19 @@ fn unmark_done(db: State<Mutex<Connection>>, id: String) {
     .unwrap();
 }
 
+#[tauri::command]
+fn end_of_day(db: State<Mutex<Connection>>) {
+    let conn = db.lock().unwrap();
+    conn.execute(
+        "UPDATE cards
+         SET column_name = 'backlog',
+             score = score + 1
+         WHERE column_name = 'today' AND archived = 0 AND done = 0",
+        [],
+    )
+    .unwrap();
+}
+
 // ---------------------------------------------------------------------------
 // App entry point
 // ---------------------------------------------------------------------------
@@ -400,6 +420,7 @@ pub fn run() {
             restore_card,
             mark_done,
             unmark_done,
+            end_of_day,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

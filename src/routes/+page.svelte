@@ -2,6 +2,7 @@
   import CardForm from "$lib/CardForm.svelte";
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
+  import CommandPalette from "$lib/CommandPalette.svelte";
   import type { CardStore } from "$lib/card-store";
   import { createTauriCardStore } from "$lib/card-store-tauri";
   import type { Card, ColumnId } from "$lib/types.ts";
@@ -20,7 +21,9 @@
   let cards = $state(store.cards);
 
   let grouped = $derived({
-    backlog: cards.filter((c) => c.column === "backlog" && !c.archived && !c.done),
+    backlog: cards
+      .filter((c) => c.column === "backlog" && !c.archived && !c.done)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
     today: cards.filter((c) => c.column === "today" && !c.archived && !c.done),
     upcoming: cards
       .filter((c) => c.column === "backlog" && c.dueDate && !c.archived && !c.done)
@@ -50,6 +53,7 @@
   let showEditDialog = $state(false);
   let showArchived = $state(false);
   let showDone = $state(false);
+  let showCommandPalette = $state(false);
   let newTargetCol = $state<ColumnId>("today");
 
   // form fields (shared between new & edit via CardForm bindings)
@@ -120,7 +124,15 @@
   function onKey(e: KeyboardEvent) {
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
-    if (showNewDialog || showEditDialog || showHelp || showArchived || showCardModal || showDone) {
+    if (
+      showNewDialog ||
+      showEditDialog ||
+      showHelp ||
+      showArchived ||
+      showCardModal ||
+      showDone ||
+      showCommandPalette
+    ) {
       if (key === "Escape" || key === "escape") {
         showNewDialog = false;
         showEditDialog = false;
@@ -128,6 +140,7 @@
         showArchived = false;
         showCardModal = false;
         showDone = false;
+        showCommandPalette = false;
         viewingCardId = null;
       }
       if (showNewDialog && (key === "Enter" || key === "enter") && !e.shiftKey) {
@@ -234,6 +247,12 @@
         e.preventDefault();
         showHelp = !showHelp;
         break;
+    }
+
+    // Cmd+K (Meta on Mac, Ctrl on Linux/Windows)
+    if (key === "k" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      showCommandPalette = true;
     }
   }
 
@@ -376,6 +395,13 @@
       ondone={() => { store.markDone(card.id); showCardModal = false; viewingCardId = null; }}
     />
   {/if}
+{/if}
+
+{#if showCommandPalette}
+  <CommandPalette
+    onclose={() => (showCommandPalette = false)}
+    onEndOfDay={() => store.endOfDay()}
+  />
 {/if}
 
 <!-- help -->

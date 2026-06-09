@@ -24,6 +24,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       dueDate: raw.due_date ?? undefined,
       archived: raw.archived ?? undefined,
       done: raw.done ?? undefined,
+      score: raw.score ?? 0,
     };
   }
 
@@ -177,6 +178,25 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       _cards = _cards.map((c) => (c.id === id ? { ...c, done: false } : c));
       _notify();
       invoke("unmark_done", { id });
+    },
+
+    endOfDay() {
+      // Optimistically clear today column, then refresh from backend
+      const todayIds = _cards
+        .filter((c) => c.column === "today" && !c.archived && !c.done)
+        .map((c) => c.id);
+      _cards = _cards.map((c) =>
+        todayIds.includes(c.id) ? { ...c, column: "backlog", score: (c.score ?? 0) + 1 } : c,
+      );
+      _notify();
+
+      invoke("end_of_day").then(() => {
+        // Reconcile with backend after the mutation
+        invoke("get_cards").then((raw: any) => {
+          _cards = raw.map(_parse);
+          _notify();
+        });
+      });
     },
   };
 }

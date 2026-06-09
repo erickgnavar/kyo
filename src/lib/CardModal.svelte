@@ -48,6 +48,11 @@
       </div>
     {/if}
 
+    <div class="card-dialog-section">
+      <label>Score</label>
+      <span class="score">{card.score ?? 0}</span>
+    </div>
+
     <div class="dialog-actions">
       <button type="button" class="btn" onclick={onclose}>Close</button>
       <div>
@@ -125,6 +130,12 @@
     line-height: 1.5;
     color: #ccc;
     white-space: pre-wrap;
+  }
+
+  .score {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e94560;
   }
 
   .tags {
