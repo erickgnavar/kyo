@@ -178,7 +178,7 @@ fn add_card(
 
     // Read back the inserted card
     conn.query_row(
-        "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done
+        "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done, score
          FROM cards WHERE id = ?1",
         rusqlite::params![id],
         row_to_card,
