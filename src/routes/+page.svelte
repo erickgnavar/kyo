@@ -2,7 +2,8 @@
   import CardForm from "$lib/CardForm.svelte";
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
-  import { type CardStore, createInMemoryCardStore } from "$lib/card-store";
+  import type { CardStore } from "$lib/card-store";
+  import { createTauriCardStore } from "$lib/card-store-tauri";
   import type { Card, ColumnId } from "$lib/types.ts";
 
   type ColumnView = { id: string; title: string };
@@ -14,7 +15,7 @@
   ];
 
   // --- data store ---
-  const store: CardStore = createInMemoryCardStore();
+  const store: CardStore & { init: () => Promise<void> } = createTauriCardStore();
 
   let cards = $state(store.cards);
 
@@ -28,9 +29,12 @@
   let archivedCards = $derived(cards.filter((c) => c.archived && !c.done));
   let doneCards = $derived(cards.filter((c) => c.done));
 
-  // keep local snapshot in sync with store
+  // keep local snapshot in sync with store + initial load from backend
   $effect(() => {
     const unsub = store.onUpdate(() => {
+      cards = store.cards;
+    });
+    store.init().then(() => {
       cards = store.cards;
     });
     return unsub;
@@ -94,7 +98,7 @@
       name: formName.trim(),
       content: formContent.trim(),
       tags,
-      dueDate: formDueDate || undefined,
+      dueDate: formDueDate || "",
     });
     showEditDialog = false;
     editId = null;
