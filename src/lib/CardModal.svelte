@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { marked } from "marked";
   import type { Card, ColumnId } from "$lib/types.ts";
+
+  let html = $derived(card.content ? marked.parse(card.content) : "");
 
   let {
     card,
@@ -27,8 +30,8 @@
     <!-- body: main + sidebar -->
     <div class="body">
       <div class="main">
-        {#if card.content}
-          <p class="content">{card.content}</p>
+        {#if html}
+          <div class="content markdown">{@html html}</div>
         {:else}
           <p class="empty-content">No description</p>
         {/if}
@@ -147,6 +150,86 @@
     color: #ccc;
     white-space: pre-wrap;
     margin: 0;
+  }
+
+  .markdown h1,
+  .markdown h2,
+  .markdown h3 {
+    margin: 16px 0 8px;
+    color: #e0e0e0;
+  }
+  .markdown h1 {
+    font-size: 18px;
+  }
+  .markdown h2 {
+    font-size: 16px;
+  }
+  .markdown h3 {
+    font-size: 14px;
+  }
+  .markdown p {
+    margin: 0 0 8px;
+  }
+  .markdown ul,
+  .markdown ol {
+    margin: 0 0 8px;
+    padding-left: 20px;
+  }
+  .markdown li {
+    margin-bottom: 2px;
+  }
+  .markdown code {
+    font-size: 12px;
+    background: #1a1a2e;
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .markdown pre {
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  .markdown pre code {
+    background: none;
+    padding: 0;
+  }
+  .markdown a {
+    color: #66b3ff;
+    text-decoration: underline;
+  }
+  .markdown a:hover {
+    color: #99ccff;
+  }
+  .markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  .markdown th,
+  .markdown td {
+    border: 1px solid #0f3460;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  .markdown th {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+  .markdown td {
+    color: #ccc;
+  }
+  .markdown tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .markdown blockquote {
+    border-left: 3px solid #0f3460;
+    margin: 8px 0;
+    padding: 4px 12px;
+    color: #aaa;
   }
 
   .empty-content {

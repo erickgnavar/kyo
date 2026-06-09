@@ -3,6 +3,7 @@
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
   import CommandPalette from "$lib/CommandPalette.svelte";
+  import { marked } from "marked";
   import type { CardStore } from "$lib/card-store";
   import { createTauriCardStore } from "$lib/card-store-tauri";
   import type { Card, ColumnId } from "$lib/types.ts";
@@ -54,6 +55,7 @@
   let showArchived = $state(false);
   let showDone = $state(false);
   let showCommandPalette = $state(false);
+  let editPreview = $state(false);
 
   // form fields (shared between new & edit via CardForm bindings)
   let formName = $state("");
@@ -160,6 +162,10 @@
       if (showEditDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         submitEdit();
+      }
+      if (showEditDialog && (key === "p" || key === "P") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        editPreview = !editPreview;
       }
       if (showCardModal && key === "e") {
         e.preventDefault();
@@ -364,14 +370,32 @@
 {#if showEditDialog}
   <div class="overlay" onclick={() => (showEditDialog = false)}>
     <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()}>
-      <h3>Edit Card</h3>
-      <CardForm
-        bind:name={formName}
-        bind:content={formContent}
-        bind:tags={formTags}
-        bind:dueDate={formDueDate}
-        editMode
-      />
+      <div class="edit-header">
+        <h3>Edit Card</h3>
+        <button type="button" class="btn small" onclick={() => (editPreview = !editPreview)}>
+          {editPreview ? "Edit" : "Preview"}
+          <span class="shortcut-hint">{navigator.platform.includes("Mac") ? "⌘P" : "Ctrl+P"}</span>
+        </button>
+      </div>
+
+      {#if editPreview}
+        <div class="edit-preview markdown">
+          {#if formContent.trim()}
+            {@html marked.parse(formContent)}
+          {:else}
+            <p class="empty-content">No description</p>
+          {/if}
+        </div>
+      {:else}
+        <CardForm
+          bind:name={formName}
+          bind:content={formContent}
+          bind:tags={formTags}
+          bind:dueDate={formDueDate}
+          editMode
+        />
+      {/if}
+
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showEditDialog = false)}>Cancel</button>
         <button type="button" class="btn primary" onclick={submitEdit}>
@@ -746,6 +770,107 @@
     min-width: 600px;
     max-width: 640px;
     min-height: 500px;
+    max-height: 85vh;
+  }
+  .edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .edit-preview {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: #1a1a2e;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    min-height: 80px;
+  }
+  :global(.edit-preview.markdown h1),
+  :global(.edit-preview.markdown h2),
+  :global(.edit-preview.markdown h3) {
+    margin: 16px 0 8px;
+    color: #e0e0e0;
+  }
+  :global(.edit-preview.markdown h1) {
+    font-size: 18px;
+  }
+  :global(.edit-preview.markdown h2) {
+    font-size: 16px;
+  }
+  :global(.edit-preview.markdown h3) {
+    font-size: 14px;
+  }
+  :global(.edit-preview.markdown p) {
+    margin: 0 0 8px;
+    color: #ccc;
+  }
+  :global(.edit-preview.markdown ul),
+  :global(.edit-preview.markdown ol) {
+    margin: 0 0 8px;
+    padding-left: 20px;
+    color: #ccc;
+  }
+  :global(.edit-preview.markdown li) {
+    margin-bottom: 2px;
+  }
+  :global(.edit-preview.markdown code) {
+    font-size: 12px;
+    background: #0f3460;
+    border-radius: 3px;
+    padding: 1px 4px;
+    color: #e0e0e0;
+  }
+  :global(.edit-preview.markdown pre) {
+    background: #0a0a1a;
+    border-radius: 6px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  :global(.edit-preview.markdown pre code) {
+    background: none;
+    padding: 0;
+  }
+  :global(.edit-preview.markdown a) {
+    color: #66b3ff;
+    text-decoration: underline;
+  }
+  :global(.edit-preview.markdown a:hover) {
+    color: #99ccff;
+  }
+  :global(.edit-preview.markdown blockquote) {
+    border-left: 3px solid #0f3460;
+    margin: 8px 0;
+    padding: 4px 12px;
+    color: #aaa;
+  }
+  :global(.edit-preview.markdown strong) {
+    color: #e0e0e0;
+  }
+  :global(.edit-preview.markdown table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  :global(.edit-preview.markdown th),
+  :global(.edit-preview.markdown td) {
+    border: 1px solid #0f3460;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  :global(.edit-preview.markdown th) {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+  :global(.edit-preview.markdown td) {
+    color: #ccc;
+  }
+  :global(.edit-preview.markdown tr:nth-child(even)) {
+    background: rgba(255, 255, 255, 0.02);
   }
   .edit-dialog .dialog-actions {
     margin-top: auto;
