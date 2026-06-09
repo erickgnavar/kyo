@@ -338,7 +338,12 @@
       />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
-        <button type="button" class="btn primary" onclick={submitNewCard}>Create</button>
+        <button type="button" class="btn primary" onclick={submitNewCard}>
+          Create
+          <span class="shortcut-hint"
+            >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
+          >
+        </button>
       </div>
     </div>
   </div>
@@ -358,7 +363,12 @@
       />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showEditDialog = false)}>Cancel</button>
-        <button type="button" class="btn primary" onclick={submitEdit}>Save</button>
+        <button type="button" class="btn primary" onclick={submitEdit}>
+          Save
+          <span class="shortcut-hint"
+            >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
+          >
+        </button>
       </div>
     </div>
   </div>
@@ -782,6 +792,12 @@
   }
   .btn.primary:hover {
     background: #d63851;
+  }
+
+  .btn .shortcut-hint {
+    font-size: 11px;
+    margin-left: 6px;
+    color: #e6b3b3;
   }
 
   /* --- help --- */
