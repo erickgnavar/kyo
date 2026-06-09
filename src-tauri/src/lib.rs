@@ -1,6 +1,8 @@
+use rusqlite::Connection;
+use rusqlite_migration::{Migrations, M};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{Manager, State};
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -19,94 +21,62 @@ pub struct Card {
     pub done: Option<bool>,
 }
 
-// ---------------------------------------------------------------------------
-// In-memory store managed by Tauri
-// ---------------------------------------------------------------------------
+fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
+    let tags_json: String = row.get("tags")?;
+    let tags: Vec<String> = serde_json::from_str(&tags_json).unwrap_or_default();
 
-struct Store {
-    cards: Vec<Card>,
-    next_id: u64,
+    Ok(Card {
+        id: row.get("id")?,
+        name: row.get("name")?,
+        content: row.get("content")?,
+        tags,
+        column: row.get("column_name")?,
+        created_at: row.get("created_at")?,
+        due_date: row.get("due_date")?,
+        archived: row
+            .get::<_, i32>("archived")
+            .map(|v| if v == 1 { Some(true) } else { None })?,
+        done: row
+            .get::<_, i32>("done")
+            .map(|v| if v == 1 { Some(true) } else { None })?,
+    })
 }
 
-impl Store {
-    fn sample() -> Self {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
+// ---------------------------------------------------------------------------
+// Migrations
+// ---------------------------------------------------------------------------
 
-        Self {
-            cards: vec![
-                Card {
-                    id: "1".into(),
-                    name: "Setup CI/CD pipeline".into(),
-                    content: "Configure GitHub Actions for the project. Need to set up tests and deployment.".into(),
-                    tags: vec!["devops".into(), "setup".into()],
-                    column: "today".into(),
-                    created_at: now - 7200000,
-                    due_date: None,
-                    archived: None,
-                    done: None,
-                },
-                Card {
-                    id: "2".into(),
-                    name: "Review PR #42".into(),
-                    content: "Review the authentication refactor PR from the team.".into(),
-                    tags: vec!["review".into()],
-                    column: "today".into(),
-                    created_at: now - 3600000,
-                    due_date: None,
-                    archived: None,
-                    done: None,
-                },
-                Card {
-                    id: "3".into(),
-                    name: "Design database schema".into(),
-                    content: "Draft the initial schema for the user and project tables.".into(),
-                    tags: vec!["design".into(), "db".into()],
-                    column: "backlog".into(),
-                    created_at: now - 86400000,
-                    due_date: None,
-                    archived: None,
-                    done: None,
-                },
-                Card {
-                    id: "4".into(),
-                    name: "Write API documentation".into(),
-                    content: "Document all REST endpoints with examples.".into(),
-                    tags: vec!["docs".into()],
-                    column: "backlog".into(),
-                    created_at: now - 172800000,
-                    due_date: None,
-                    archived: None,
-                    done: None,
-                },
-                Card {
-                    id: "5".into(),
-                    name: "Check Slack thread".into(),
-                    content: "Team asked about the deployment timeline, need to respond.".into(),
-                    tags: vec!["communication".into()],
-                    column: "today".into(),
-                    created_at: now - 3600000,
-                    due_date: Some("2026-06-10".into()),
-                    archived: None,
-                    done: None,
-                },
-                Card {
-                    id: "6".into(),
-                    name: "Follow up on client email".into(),
-                    content: "Client requested changes to the dashboard layout.".into(),
-                    tags: vec!["client".into()],
-                    column: "backlog".into(),
-                    created_at: now - 7200000,
-                    due_date: Some("2026-06-11".into()),
-                    archived: None,
-                    done: None,
-                },
-            ],
-            next_id: 7,
-        }
-    }
+const MIGRATIONS: &[M] = &[M::up(include_str!("../migrations/001_init.sql"))];
+
+fn migrate(conn: &mut Connection) {
+    Migrations::new(MIGRATIONS.to_vec())
+        .to_latest(conn)
+        .expect("migrations failed");
+}
+
+// ---------------------------------------------------------------------------
+// Database initialisation
+// ---------------------------------------------------------------------------
+
+fn open_db(app: &tauri::App) -> Connection {
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .expect("failed to resolve app data dir");
+    std::fs::create_dir_all(&app_dir).expect("failed to create app data dir");
+    let db_path = app_dir.join("kyo.db");
+
+    let mut conn = Connection::open(&db_path).expect("failed to open database");
+    // WAL mode for better concurrent access
+    conn.execute_batch("PRAGMA journal_mode=WAL;")
+        .expect("failed to set WAL mode");
+    // Enable foreign keys
+    conn.execute_batch("PRAGMA foreign_keys=ON;")
+        .expect("failed to enable foreign keys");
+
+    migrate(&mut conn);
+
+    conn
 }
 
 // ---------------------------------------------------------------------------
@@ -114,139 +84,297 @@ impl Store {
 // ---------------------------------------------------------------------------
 
 #[tauri::command]
-fn get_cards(store: State<Mutex<Store>>) -> Vec<Card> {
-    store.lock().unwrap().cards.clone()
+fn get_cards(db: State<Mutex<Connection>>) -> Vec<Card> {
+    let conn = db.lock().unwrap();
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done
+             FROM cards ORDER BY sort_order, ROWID",
+        )
+        .unwrap();
+    stmt.query_map([], row_to_card)
+        .unwrap()
+        .filter_map(|r| r.ok())
+        .collect()
 }
 
 #[tauri::command]
 fn add_card(
-    store: State<Mutex<Store>>,
+    db: State<Mutex<Connection>>,
     column: String,
     name: String,
     content: String,
     tags: Vec<String>,
     due_date: Option<String>,
 ) -> Card {
-    let mut s = store.lock().unwrap();
-    let id = s.next_id.to_string();
-    s.next_id += 1;
+    let conn = db.lock().unwrap();
+    let tags_json = serde_json::to_string(&tags).unwrap();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64;
 
-    let card = Card {
-        id,
-        name,
-        content,
-        tags,
-        column: column.clone(),
-        created_at: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64,
-        due_date,
-        archived: None,
-        done: None,
-    };
+    // Compute next ID
+    let next_id: i64 = conn
+        .query_row(
+            "SELECT COALESCE(MAX(CAST(id AS INTEGER)), 0) + 1 FROM cards",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    let id = next_id.to_string();
 
-    // Insertion logic: today cards go after the first existing today card
-    if column == "today" {
-        let first_today_idx = s.cards.iter().position(|c| c.column == "today");
-        match first_today_idx {
-            None => s.cards.push(card.clone()),
-            Some(idx) => s.cards.insert(idx + 1, card.clone()),
+    // Compute sort_order: if today, insert after first today card
+    let sort_order: i64 = if column == "today" {
+        let first_today: Option<(String, i64)> = conn
+            .query_row(
+                "SELECT id, sort_order FROM cards
+                 WHERE column_name = 'today' AND archived = 0
+                 ORDER BY sort_order LIMIT 1",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .ok();
+
+        match first_today {
+            None => 0,
+            Some((ref first_id, ref order)) if *first_id == id => *order + 1,
+            Some((_, order)) => {
+                // Shift all subsequent today cards down by 1, insert after first
+                conn.execute(
+                    "UPDATE cards SET sort_order = sort_order + 1
+                     WHERE column_name = 'today' AND archived = 0 AND sort_order > ?1",
+                    rusqlite::params![order],
+                )
+                .unwrap();
+                order + 1
+            }
         }
     } else {
-        s.cards.push(card.clone());
-    }
+        // Backlog: append at the end
+        let max_order: i64 = conn
+            .query_row(
+                "SELECT COALESCE(MAX(sort_order), -1) FROM cards WHERE column_name = 'backlog' AND archived = 0",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        max_order + 1
+    };
 
-    card
+    conn.execute(
+        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, done)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0)",
+        rusqlite::params![id, name, content, tags_json, column, now, sort_order, due_date],
+    )
+    .unwrap();
+
+    // Read back the inserted card
+    conn.query_row(
+        "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done
+         FROM cards WHERE id = ?1",
+        rusqlite::params![id],
+        row_to_card,
+    )
+    .unwrap()
 }
 
 #[tauri::command]
 fn update_card(
-    store: State<Mutex<Store>>,
+    db: State<Mutex<Connection>>,
     id: String,
     name: Option<String>,
     content: Option<String>,
     tags: Option<Vec<String>>,
     due_date: Option<String>,
 ) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        if let Some(v) = name {
-            card.name = v;
+    let conn = db.lock().unwrap();
+
+    if let Some(v) = name {
+        conn.execute(
+            "UPDATE cards SET name = ?1 WHERE id = ?2",
+            rusqlite::params![v, id],
+        )
+        .unwrap();
+    }
+    if let Some(v) = content {
+        conn.execute(
+            "UPDATE cards SET content = ?1 WHERE id = ?2",
+            rusqlite::params![v, id],
+        )
+        .unwrap();
+    }
+    if let Some(v) = tags {
+        let json = serde_json::to_string(&v).unwrap();
+        conn.execute(
+            "UPDATE cards SET tags = ?1 WHERE id = ?2",
+            rusqlite::params![json, id],
+        )
+        .unwrap();
+    }
+    // Empty string means clear the due date
+    match due_date {
+        Some(ref v) if v.is_empty() => {
+            conn.execute(
+                "UPDATE cards SET due_date = NULL WHERE id = ?1",
+                rusqlite::params![id],
+            )
+            .unwrap();
         }
-        if let Some(v) = content {
-            card.content = v;
+        Some(v) => {
+            conn.execute(
+                "UPDATE cards SET due_date = ?1 WHERE id = ?2",
+                rusqlite::params![v, id],
+            )
+            .unwrap();
         }
-        if let Some(v) = tags {
-            card.tags = v;
-        }
-        // Empty string means "clear due date"
-        card.due_date = match due_date {
-            Some(ref v) if v.is_empty() => None,
-            Some(v) => Some(v),
-            None => card.due_date.clone(),
-        };
+        None => {}
     }
 }
 
 #[tauri::command]
-fn move_to_column(store: State<Mutex<Store>>, id: String, target: String) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        card.column = target;
-    }
-}
+fn move_to_column(db: State<Mutex<Connection>>, id: String, target: String) {
+    let conn = db.lock().unwrap();
 
-#[tauri::command]
-fn move_within_column(store: State<Mutex<Store>>, id: String, direction: i8) {
-    let mut s = store.lock().unwrap();
-    let idx = match s.cards.iter().position(|c| c.id == id) {
-        Some(i) => i,
-        None => return,
+    let new_order: i64 = if target == "today" {
+        // Insert after the first today card
+        let first_today: Option<i64> = conn
+            .query_row(
+                "SELECT sort_order FROM cards
+                 WHERE column_name = 'today' AND archived = 0
+                 ORDER BY sort_order LIMIT 1",
+                [],
+                |row| row.get(0),
+            )
+            .ok();
+
+        match first_today {
+            None => 0,
+            Some(order) => {
+                conn.execute(
+                    "UPDATE cards SET sort_order = sort_order + 1
+                     WHERE column_name = 'today' AND archived = 0 AND sort_order > ?1",
+                    rusqlite::params![order],
+                )
+                .unwrap();
+                order + 1
+            }
+        }
+    } else {
+        // Backlog: append at the end
+        let max_order: i64 = conn
+            .query_row(
+                "SELECT COALESCE(MAX(sort_order), -1) FROM cards
+                 WHERE column_name = 'backlog' AND archived = 0",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        max_order + 1
     };
-    let col = s.cards[idx].column.clone();
-    let step = if direction > 0 { 1 } else { -1 };
-    let mut swap_i = (idx as isize + step) as usize;
-    while swap_i < s.cards.len() {
-        if s.cards[swap_i].column == col && !s.cards[swap_i].archived.unwrap_or(false) {
-            s.cards.swap(idx, swap_i);
-            return;
-        }
-        swap_i = (swap_i as isize + step) as usize;
-    }
+
+    conn.execute(
+        "UPDATE cards SET column_name = ?1, sort_order = ?2 WHERE id = ?3",
+        rusqlite::params![target, new_order, id],
+    )
+    .unwrap();
 }
 
 #[tauri::command]
-fn archive_card(store: State<Mutex<Store>>, id: String) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        card.archived = Some(true);
+fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
+    let conn = db.lock().unwrap();
+
+    // Read all visible cards in the same column in current order
+    let col: String = conn
+        .query_row(
+            "SELECT column_name FROM cards WHERE id = ?1",
+            rusqlite::params![id],
+            |row| row.get(0),
+        )
+        .unwrap();
+
+    let cards: Vec<(String, i64)> = conn
+        .prepare(
+            "SELECT id, sort_order FROM cards
+             WHERE column_name = ?1 AND archived = 0 AND done = 0
+             ORDER BY sort_order",
+        )
+        .unwrap()
+        .query_map(rusqlite::params![col], |row| {
+            let cid: String = row.get(0)?;
+            let order: i64 = row.get(1)?;
+            Ok((cid, order))
+        })
+        .unwrap()
+        .filter_map(|r| r.ok())
+        .collect();
+
+    let pos = cards.iter().position(|(cid, _)| cid == &id);
+    if pos.is_none() {
+        return;
     }
+    let pos = pos.unwrap();
+    let swap_pos = (pos as isize + direction as isize) as usize;
+    if swap_pos >= cards.len() {
+        return;
+    }
+
+    let a_id = &cards[pos].0;
+    let b_id = &cards[swap_pos].0;
+    let a_order = cards[pos].1;
+    let b_order = cards[swap_pos].1;
+
+    // Swap sort_orders
+    conn.execute(
+        "UPDATE cards SET sort_order = ?1 WHERE id = ?2",
+        rusqlite::params![a_order, b_id],
+    )
+    .unwrap();
+    conn.execute(
+        "UPDATE cards SET sort_order = ?1 WHERE id = ?2",
+        rusqlite::params![b_order, a_id],
+    )
+    .unwrap();
 }
 
 #[tauri::command]
-fn restore_card(store: State<Mutex<Store>>, id: String, column: String) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        card.archived = Some(false);
-        card.column = column;
-    }
+fn archive_card(db: State<Mutex<Connection>>, id: String) {
+    let conn = db.lock().unwrap();
+    conn.execute(
+        "UPDATE cards SET archived = 1 WHERE id = ?1",
+        rusqlite::params![id],
+    )
+    .unwrap();
 }
 
 #[tauri::command]
-fn mark_done(store: State<Mutex<Store>>, id: String) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        card.done = Some(true);
-    }
+fn restore_card(db: State<Mutex<Connection>>, id: String, column: String) {
+    let conn = db.lock().unwrap();
+    conn.execute(
+        "UPDATE cards SET archived = 0, column_name = ?1 WHERE id = ?2",
+        rusqlite::params![column, id],
+    )
+    .unwrap();
 }
 
 #[tauri::command]
-fn unmark_done(store: State<Mutex<Store>>, id: String) {
-    let mut s = store.lock().unwrap();
-    if let Some(card) = s.cards.iter_mut().find(|c| c.id == id) {
-        card.done = Some(false);
-    }
+fn mark_done(db: State<Mutex<Connection>>, id: String) {
+    let conn = db.lock().unwrap();
+    conn.execute(
+        "UPDATE cards SET done = 1 WHERE id = ?1",
+        rusqlite::params![id],
+    )
+    .unwrap();
+}
+
+#[tauri::command]
+fn unmark_done(db: State<Mutex<Connection>>, id: String) {
+    let conn = db.lock().unwrap();
+    conn.execute(
+        "UPDATE cards SET done = 0 WHERE id = ?1",
+        rusqlite::params![id],
+    )
+    .unwrap();
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +385,11 @@ fn unmark_done(store: State<Mutex<Store>>, id: String) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(Mutex::new(Store::sample()))
+        .setup(|app| {
+            let conn = open_db(app);
+            app.manage(Mutex::new(conn));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_cards,
             add_card,
