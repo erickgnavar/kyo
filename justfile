@@ -1,6 +1,13 @@
-# Format all supported files
-format:
+# Format all source files
+format: format-js format-rust
+
+# Format JS/TS/Svelte files
+format-js:
     biome format --fix .
+
+# Format Rust code
+format-rust:
+    cd src-tauri && cargo fmt
 
 # Check formatting
 format-check:
