@@ -54,7 +54,6 @@
   let showArchived = $state(false);
   let showDone = $state(false);
   let showCommandPalette = $state(false);
-  let newTargetCol = $state<ColumnId>("today");
 
   // form fields (shared between new & edit via CardForm bindings)
   let formName = $state("");
@@ -115,10 +114,10 @@
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    store.add(newTargetCol, name, formContent.trim(), tags, formDueDate || undefined);
+    store.add("backlog", name, formContent.trim(), tags, formDueDate || undefined);
     showNewDialog = false;
-    colIdx = COLUMNS.findIndex((c) => c.id === newTargetCol);
-    rowIdx = newTargetCol === "today" ? 1 : store.getByColumn(newTargetCol).length - 1;
+    colIdx = COLUMNS.findIndex((c) => c.id === "backlog");
+    rowIdx = store.getByColumn("backlog").length - 1;
   }
 
   function onKey(e: KeyboardEvent) {
@@ -143,11 +142,11 @@
         showCommandPalette = false;
         viewingCardId = null;
       }
-      if (showNewDialog && (key === "Enter" || key === "enter") && !e.shiftKey) {
+      if (showNewDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         submitNewCard();
       }
-      if (showEditDialog && (key === "Enter" || key === "enter") && !e.shiftKey) {
+      if (showEditDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         submitEdit();
       }
@@ -239,7 +238,6 @@
         break;
       case "n":
         e.preventDefault();
-        newTargetCol = "today";
         resetForm();
         showNewDialog = true;
         break;
@@ -254,12 +252,6 @@
       e.preventDefault();
       showCommandPalette = true;
     }
-  }
-
-  function openNewForBacklog() {
-    newTargetCol = "backlog";
-    resetForm();
-    showNewDialog = true;
   }
 </script>
 
@@ -306,7 +298,11 @@
           {/each}
         </div>
         {#if col.id === "backlog"}
-          <button type="button" class="add-btn" onclick={openNewForBacklog}>
+          <button
+            type="button"
+            class="add-btn"
+            onclick={() => { resetForm(); showNewDialog = true; }}
+          >
             + Add to Backlog
           </button>
         {/if}
@@ -342,22 +338,7 @@
       />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
-        <div>
-          <button
-            type="button"
-            class="btn primary"
-            onclick={() => { newTargetCol = "today"; submitNewCard(); }}
-          >
-            Add to Today
-          </button>
-          <button
-            type="button"
-            class="btn primary"
-            onclick={() => { newTargetCol = "backlog"; submitNewCard(); }}
-          >
-            Add to Backlog
-          </button>
-        </div>
+        <button type="button" class="btn primary" onclick={submitNewCard}>Create</button>
       </div>
     </div>
   </div>
@@ -705,6 +686,40 @@
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
+  }
+  .target-badge {
+    font-size: 12px;
+    font-weight: 400;
+    color: #e94560;
+    margin-left: 6px;
+  }
+  .target-tabs {
+    display: flex;
+    gap: 4px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #888;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition:
+      background 0.1s,
+      color 0.1s;
+  }
+  .tab.active {
+    background: #e94560;
+    color: #fff;
+  }
+  .tab:hover:not(.active) {
+    color: #ccc;
   }
   .edit-dialog {
     min-width: 600px;
