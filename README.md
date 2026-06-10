@@ -1,5 +1,7 @@
 # kyo
 
+<p align="center"><img src="static/icon.svg" width="128" height="128" alt="" /></p>
+
 A keyboard-driven work tracking app. Three columns — Backlog, Today, Upcoming — managed entirely via
 the keyboard.
 
