@@ -88,6 +88,13 @@ fn open_db(app: &tauri::App) -> Connection {
 // Tauri commands
 // ---------------------------------------------------------------------------
 
+fn now_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64
+}
+
 #[tauri::command]
 fn get_cards(db: State<Mutex<Connection>>) -> Vec<Card> {
     let conn = db.lock().unwrap();
@@ -116,10 +123,7 @@ fn add_card(
 ) -> Card {
     let conn = db.lock().unwrap();
     let tags_json = serde_json::to_string(&tags).unwrap();
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as u64;
+    let now = now_ms();
 
     // Compute next ID
     let next_id: i64 = conn
@@ -367,10 +371,7 @@ fn restore_card(db: State<Mutex<Connection>>, id: String, column: String) {
 #[tauri::command]
 fn mark_done(db: State<Mutex<Connection>>, id: String) {
     let conn = db.lock().unwrap();
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as i64;
+    let now = now_ms() as i64;
     conn.execute(
         "UPDATE cards SET done_at = ?1 WHERE id = ?2",
         rusqlite::params![now, id],
@@ -391,11 +392,7 @@ fn unmark_done(db: State<Mutex<Connection>>, id: String) {
 #[tauri::command]
 fn get_weekly_review(db: State<Mutex<Connection>>) -> Vec<Card> {
     let conn = db.lock().unwrap();
-    let week_ago = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as i64
-        - 7 * 24 * 60 * 60 * 1000;
+    let week_ago = now_ms() as i64 - 7 * 24 * 60 * 60 * 1000;
     let mut stmt = conn
         .prepare(
             "SELECT id, name, content, tags, column_name, created_at, due_date, archived, score, done_at
