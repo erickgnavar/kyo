@@ -16,7 +16,7 @@
 
 <label>
   Name *
-  <input type="text" bind:value={name} placeholder="card name" />
+  <input type="text" bind:value={name} placeholder="card name" autofocus />
 </label>
 
 <label class:grow={editMode}>
