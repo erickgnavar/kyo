@@ -3,11 +3,13 @@
 
   let {
     cards = [],
+    columnTitles = {},
     onclose,
     onEndOfDay,
     onCardSelect,
   }: {
     cards?: Card[];
+    columnTitles?: Record<string, string>;
     onclose: () => void;
     onEndOfDay: () => void;
     onCardSelect?: (id: string) => void;
@@ -18,12 +20,14 @@
   let mode = $state<"commands" | "search">("commands");
   let inputEl: HTMLInputElement | undefined = $state();
 
-  // Focus when component mounts or mode changes
+  // Focus on mount
   $effect(() => {
-    // track both inputEl and mode
-    void inputEl;
-    void mode;
-    setTimeout(() => inputEl?.focus(), 50);
+    if (inputEl) inputEl.focus();
+  });
+
+  // Re-focus when switching to search mode
+  $effect(() => {
+    if (mode === "search" && inputEl) inputEl.focus();
   });
 
   const actions = [
@@ -66,22 +70,6 @@
   );
 
   let items = $derived(mode === "commands" ? filtered : cardResults);
-  let placeholder = $derived(mode === "commands" ? "Type a command..." : "Search cards by name...");
-
-  function selectCurrent() {
-    const item = items[selected];
-    if (!item) return;
-
-    if (mode === "commands") {
-      const action = item as (typeof actions)[0];
-      action.run();
-      if (action.id !== "search-cards") onclose();
-    } else if (mode === "search" && onCardSelect) {
-      const card = item as Card;
-      onCardSelect(card.id);
-      onclose();
-    }
-  }
 
   function onKey(e: KeyboardEvent) {
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -112,7 +100,17 @@
 
     if (key === "Enter" || key === "enter") {
       e.preventDefault();
-      selectCurrent();
+      const action = filtered[selected];
+      if (mode === "commands" && action) {
+        action.run();
+        if (action.id !== "search-cards") onclose();
+      } else if (mode === "search" && onCardSelect) {
+        const card = cardResults[selected];
+        if (card) {
+          onCardSelect(card.id);
+          onclose();
+        }
+      }
       return;
     }
   }
@@ -120,59 +118,58 @@
 
 <svelte:window onkeydown={onKey} />
 
-<div
-  class="overlay"
-  onclick={onclose}
-  onkeydown={(e) => e.key === "Escape" && onclose()}
-  role="dialog"
-  tabindex="-1"
->
+<div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
   <div class="palette" onclick={(e) => e.stopPropagation()} role="presentation">
     <input
       type="text"
       class="search"
-      {placeholder}
+      placeholder={mode === "commands" ? "Type a command..." : "Search cards by name..."}
       bind:value={query}
       bind:this={inputEl}
       oninput={() => { selected = 0; }}
     />
 
     <div class="list">
-      {#each items as item, i}
-        <button
-          class="item"
-          class:selected={i === selected}
-          onclick={() => {
-            selected = i;
-            selectCurrent();
-          }}
-        >
-          {#if mode === "commands"}
-            <span class="label">{(item as (typeof actions)[0]).label}</span>
-            <span class="desc">{(item as (typeof actions)[0]).description}</span>
-          {:else}
-            <span class="label">{(item as Card).name}</span>
-            <span class="desc"
-              >{COLUMNS.find((c) => c.id === (item as Card).column)?.title ?? (item as Card).column}</span
-            >
-          {/if}
-        </button>
+      {#if mode === "commands"}
+        {#each filtered as action, i}
+          <button
+            class="item"
+            class:selected={i === selected}
+            onclick={() => {
+              selected = i;
+              action.run();
+              if (action.id !== "search-cards") onclose();
+            }}
+          >
+            <span class="label">{action.label}</span>
+            <span class="desc">{action.description}</span>
+          </button>
+        {:else}
+          <div class="empty">No matching commands</div>
+        {/each}
       {:else}
-        <div class="empty">
-          {mode === "commands" ? "No matching commands" : query.trim() ? "No matching cards" : "Start typing a card name..."}
-        </div>
-      {/each}
+        {#each cardResults as card, i}
+          <button
+            class="item"
+            class:selected={i === selected}
+            onclick={() => {
+              selected = i;
+              onCardSelect?.(card.id);
+              onclose();
+            }}
+          >
+            <span class="label">{card.name}</span>
+            <span class="desc">{columnTitles[card.column] ?? card.column}</span>
+          </button>
+        {:else}
+          <div class="empty">
+            {query.trim() ? "No matching cards" : "Start typing a card name..."}
+          </div>
+        {/each}
+      {/if}
     </div>
   </div>
 </div>
-
-<script lang="ts" context="module">
-  const COLUMNS: { id: string; title: string }[] = [
-    { id: "backlog", title: "Backlog" },
-    { id: "today", title: "Today" },
-    { id: "upcoming", title: "Upcoming" },
-  ];
-</script>
 
 <style>
   .overlay {

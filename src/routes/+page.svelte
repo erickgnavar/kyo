@@ -441,6 +441,7 @@
 {#if showCommandPalette}
   <CommandPalette
     {cards}
+    columnTitles={{ backlog: "Backlog", today: "Today", upcoming: "Upcoming" }}
     onclose={() => (showCommandPalette = false)}
     onEndOfDay={() => store.endOfDay()}
     onCardSelect={(id) => { viewingCardId = id; showCardModal = true; }}
