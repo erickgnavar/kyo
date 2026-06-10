@@ -118,7 +118,13 @@
 
 <svelte:window onkeydown={onKey} />
 
-<div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
+<div
+  class="overlay"
+  onclick={onclose}
+  onkeydown={(e) => e.key === "Escape" && onclose()}
+  role="dialog"
+  tabindex="-1"
+>
   <div class="palette" onclick={(e) => e.stopPropagation()} role="presentation">
     <input
       type="text"
@@ -126,6 +132,10 @@
       placeholder={mode === "commands" ? "Type a command..." : "Search cards by name..."}
       bind:value={query}
       bind:this={inputEl}
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
       oninput={() => { selected = 0; }}
     />
 

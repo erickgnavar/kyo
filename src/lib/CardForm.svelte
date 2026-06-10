@@ -74,7 +74,17 @@
 
 <label>
   Name *
-  <input type="text" bind:value={name} placeholder="card name" autofocus />
+  <!-- svelte-ignore a11y_autofocus -->
+  <input
+    type="text"
+    bind:value={name}
+    placeholder="card name"
+    autofocus
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+  />
 </label>
 
 <label class:grow={editMode}>
@@ -82,6 +92,8 @@
   <textarea
     bind:value={content}
     placeholder="description (optional)"
+    autocomplete="off"
+    spellcheck="false"
     rows={editMode ? 10 : 3}
   ></textarea>
 </label>
@@ -94,6 +106,10 @@
       bind:value={tags}
       bind:this={inputEl}
       placeholder="comma, separated"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
       onkeydown={onInputKeydown}
       oninput={onInputInput}
       onblur={() => setTimeout(() => (showSuggestions = false), 150)}
