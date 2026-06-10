@@ -67,6 +67,11 @@
           <span>Carried over</span>
           <span class="score">{card.score ?? 0} ×</span>
         </div>
+
+        <div class="meta-block">
+          <span>Created</span>
+          <span class="date">{new Date(card.createdAt).toLocaleDateString()}</span>
+        </div>
       </div>
     </div>
 
@@ -290,6 +295,11 @@
     font-size: 13px;
     font-weight: 700;
     color: #e94560;
+  }
+
+  .date {
+    font-size: 13px;
+    color: #ccc;
   }
 
   /* --- actions --- */
