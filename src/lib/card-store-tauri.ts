@@ -30,7 +30,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
 
   return {
     async init() {
-      _cards = (await invoke("get_cards")).map(_parse);
+      _cards = (await invoke<any[]>("get_cards")).map(_parse);
       _notify();
     },
 
@@ -41,10 +41,6 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     onUpdate(fn: () => void) {
       _listeners.add(fn);
       return () => _listeners.delete(fn);
-    },
-
-    getAll() {
-      return _cards;
     },
 
     getById(id: string) {

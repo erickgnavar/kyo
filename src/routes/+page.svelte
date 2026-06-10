@@ -21,7 +21,7 @@
 
   let cards = $state(store.cards);
 
-  let grouped = $derived({
+  let grouped: Record<string, Card[]> = $derived({
     backlog: cards
       .filter((c) => c.column === "backlog" && !c.archived && !c.done)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),

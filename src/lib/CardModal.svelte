@@ -2,8 +2,6 @@
   import { marked } from "marked";
   import type { Card, ColumnId } from "$lib/types.ts";
 
-  let html = $derived(card.content ? marked.parse(card.content) : "");
-
   let {
     card,
     columns,
@@ -12,11 +10,13 @@
     ondone,
   }: {
     card: Card;
-    columns: { id: ColumnId; title: string }[];
+    columns: { id: string; title: string }[];
     onclose: () => void;
     onedit: () => void;
     ondone?: () => void;
   } = $props();
+
+  let html = $derived(card.content ? marked.parse(card.content) : "");
 </script>
 
 <div
