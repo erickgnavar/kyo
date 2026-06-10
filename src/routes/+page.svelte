@@ -3,6 +3,7 @@
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
   import CommandPalette from "$lib/CommandPalette.svelte";
+  import WeeklyReview from "$lib/WeeklyReview.svelte";
   import { marked } from "marked";
   import type { CardStore } from "$lib/card-store";
   import { createTauriCardStore } from "$lib/card-store-tauri";
@@ -56,6 +57,8 @@
   let showArchived = $state(false);
   let showDone = $state(false);
   let showCommandPalette = $state(false);
+  let showWeeklyReview = $state(false);
+  let weeklyReviewCards = $state<Card[]>([]);
   let editPreview = $state(false);
 
   // form fields (shared between new & edit via CardForm bindings)
@@ -88,6 +91,11 @@
   });
 
   // --- helpers ---
+  async function openWeeklyReview() {
+    weeklyReviewCards = await store.getWeeklyReview();
+    showWeeklyReview = true;
+  }
+
   function resetForm() {
     formName = "";
     formContent = "";
@@ -144,7 +152,8 @@
       showArchived ||
       showCardModal ||
       showDone ||
-      showCommandPalette
+      showCommandPalette ||
+      showWeeklyReview
     ) {
       if (key === "Escape" || key === "escape") {
         showNewDialog = false;
@@ -154,6 +163,7 @@
         showCardModal = false;
         showDone = false;
         showCommandPalette = false;
+        showWeeklyReview = false;
         viewingCardId = null;
       }
       if (showNewDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
@@ -452,7 +462,13 @@
     onCardSelect={(id) => { viewingCardId = id; showCardModal = true; }}
     onViewArchived={() => (showArchived = true)}
     onViewDone={() => (showDone = true)}
+    onWeeklyReview={openWeeklyReview}
   />
+{/if}
+
+<!-- weekly review -->
+{#if showWeeklyReview}
+  <WeeklyReview cards={weeklyReviewCards} onclose={() => (showWeeklyReview = false)} />
 {/if}
 
 <!-- help -->

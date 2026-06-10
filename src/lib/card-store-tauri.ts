@@ -25,6 +25,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       archived: raw.archived ?? undefined,
       done: raw.done ?? undefined,
       score: raw.score ?? 0,
+      doneAt: raw.done_at ?? undefined,
     };
   }
 
@@ -193,6 +194,11 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
           _notify();
         });
       });
+    },
+
+    async getWeeklyReview(): Promise<Card[]> {
+      const raw = await invoke<any[]>("get_weekly_review");
+      return raw.map(_parse);
     },
   };
 }

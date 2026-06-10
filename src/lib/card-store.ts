@@ -33,4 +33,5 @@ export interface CardStore {
   markDone(id: string): void;
   unmarkDone(id: string): void;
   endOfDay(): void;
+  getWeeklyReview(): Promise<Card[]>;
 }

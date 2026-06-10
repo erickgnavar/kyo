@@ -9,6 +9,7 @@
     onCardSelect,
     onViewArchived,
     onViewDone,
+    onWeeklyReview,
   }: {
     cards?: Card[];
     columnTitles?: Record<string, string>;
@@ -17,6 +18,7 @@
     onCardSelect?: (id: string) => void;
     onViewArchived?: () => void;
     onViewDone?: () => void;
+    onWeeklyReview?: () => void;
   } = $props();
 
   let query = $state("");
@@ -66,6 +68,15 @@
       description: "Open done cards",
       run: () => {
         onViewDone?.();
+        onclose();
+      },
+    },
+    {
+      id: "weekly-review",
+      label: "Weekly Review",
+      description: "Show cards completed this week",
+      run: () => {
+        onWeeklyReview?.();
         onclose();
       },
     },

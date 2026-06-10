@@ -11,4 +11,5 @@ export interface Card {
   archived?: boolean;
   done?: boolean;
   score?: number;
+  doneAt?: number;
 }
