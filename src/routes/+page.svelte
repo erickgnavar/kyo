@@ -450,6 +450,8 @@
     onclose={() => (showCommandPalette = false)}
     onEndOfDay={() => store.endOfDay()}
     onCardSelect={(id) => { viewingCardId = id; showCardModal = true; }}
+    onViewArchived={() => (showArchived = true)}
+    onViewDone={() => (showDone = true)}
   />
 {/if}
 

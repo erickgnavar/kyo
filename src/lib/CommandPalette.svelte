@@ -7,12 +7,16 @@
     onclose,
     onEndOfDay,
     onCardSelect,
+    onViewArchived,
+    onViewDone,
   }: {
     cards?: Card[];
     columnTitles?: Record<string, string>;
     onclose: () => void;
     onEndOfDay: () => void;
     onCardSelect?: (id: string) => void;
+    onViewArchived?: () => void;
+    onViewDone?: () => void;
   } = $props();
 
   let query = $state("");
@@ -46,6 +50,24 @@
       label: "End of Day",
       description: "Move all non-done cards from Today to Backlog and increment their score",
       run: () => onEndOfDay(),
+    },
+    {
+      id: "view-archived",
+      label: "View Archived",
+      description: "Open archived cards",
+      run: () => {
+        onViewArchived?.();
+        onclose();
+      },
+    },
+    {
+      id: "view-done",
+      label: "View Done",
+      description: "Open done cards",
+      run: () => {
+        onViewDone?.();
+        onclose();
+      },
     },
   ];
 
