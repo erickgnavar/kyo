@@ -30,6 +30,15 @@ pnpm install
 pnpm tauri dev
 ```
 
+## macOS
+
+The app is not notarized by Apple. After installing the `.dmg`, you may need to remove the
+quarantine attribute before launching:
+
+```bash
+xattr -cr /Applications/kyo.app
+```
+
 ## Just recipes
 
 ```bash
