@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "../app.css";
   import CardForm from "$lib/CardForm.svelte";
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
@@ -803,91 +804,7 @@
     border-radius: 6px;
     min-height: 80px;
   }
-  :global(.edit-preview.markdown h1),
-  :global(.edit-preview.markdown h2),
-  :global(.edit-preview.markdown h3) {
-    margin: 16px 0 8px;
-    color: #e0e0e0;
-  }
-  :global(.edit-preview.markdown h1) {
-    font-size: 18px;
-  }
-  :global(.edit-preview.markdown h2) {
-    font-size: 16px;
-  }
-  :global(.edit-preview.markdown h3) {
-    font-size: 14px;
-  }
-  :global(.edit-preview.markdown p) {
-    margin: 0 0 8px;
-    color: #ccc;
-  }
-  :global(.edit-preview.markdown ul),
-  :global(.edit-preview.markdown ol) {
-    margin: 0 0 8px;
-    padding-left: 20px;
-    color: #ccc;
-  }
-  :global(.edit-preview.markdown li) {
-    margin-bottom: 2px;
-  }
-  :global(.edit-preview.markdown code) {
-    font-size: 12px;
-    background: #0f3460;
-    border-radius: 3px;
-    padding: 1px 4px;
-    color: #e0e0e0;
-  }
-  :global(.edit-preview.markdown pre) {
-    background: #0a0a1a;
-    border-radius: 6px;
-    padding: 12px;
-    overflow-x: auto;
-    margin: 8px 0;
-  }
-  :global(.edit-preview.markdown pre code) {
-    background: none;
-    padding: 0;
-  }
-  :global(.edit-preview.markdown a) {
-    color: #66b3ff;
-    text-decoration: underline;
-  }
-  :global(.edit-preview.markdown a:hover) {
-    color: #99ccff;
-  }
-  :global(.edit-preview.markdown blockquote) {
-    border-left: 3px solid #0f3460;
-    margin: 8px 0;
-    padding: 4px 12px;
-    color: #aaa;
-  }
-  :global(.edit-preview.markdown strong) {
-    color: #e0e0e0;
-  }
-  :global(.edit-preview.markdown table) {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 8px 0;
-    font-size: 13px;
-  }
-  :global(.edit-preview.markdown th),
-  :global(.edit-preview.markdown td) {
-    border: 1px solid #0f3460;
-    padding: 6px 10px;
-    text-align: left;
-  }
-  :global(.edit-preview.markdown th) {
-    background: #1a1a2e;
-    color: #e0e0e0;
-    font-weight: 600;
-  }
-  :global(.edit-preview.markdown td) {
-    color: #ccc;
-  }
-  :global(.edit-preview.markdown tr:nth-child(even)) {
-    background: rgba(255, 255, 255, 0.02);
-  }
+
   .edit-dialog .dialog-actions {
     margin-top: auto;
   }
