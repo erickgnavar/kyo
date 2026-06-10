@@ -86,13 +86,13 @@
       return;
     }
 
-    if (key === "ArrowDown" || key === "arrowdown") {
+    if (key === "ArrowDown" || key === "arrowdown" || (key === "n" && e.ctrlKey)) {
       e.preventDefault();
       selected = Math.min(selected + 1, items.length - 1);
       return;
     }
 
-    if (key === "ArrowUp" || key === "arrowup") {
+    if (key === "ArrowUp" || key === "arrowup" || (key === "p" && e.ctrlKey)) {
       e.preventDefault();
       selected = Math.max(selected - 1, 0);
       return;
