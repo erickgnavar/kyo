@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { handleMarkdownClick } from "$lib/links";
   import { marked } from "marked";
   import type { Card, ColumnId } from "$lib/types.ts";
 
@@ -32,7 +33,8 @@
     <div class="body">
       <div class="main">
         {#if html}
-          <div class="content markdown">{@html html}</div>
+          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+          <div class="content markdown" onclick={handleMarkdownClick}>{@html html}</div>
         {:else}
           <p class="empty-content">No description</p>
         {/if}

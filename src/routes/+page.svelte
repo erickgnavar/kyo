@@ -5,6 +5,7 @@
   import CardModal from "$lib/CardModal.svelte";
   import CommandPalette from "$lib/CommandPalette.svelte";
   import WeeklyReview from "$lib/WeeklyReview.svelte";
+  import { handleMarkdownClick } from "$lib/links";
   import { marked } from "marked";
   import type { CardStore } from "$lib/card-store";
   import { createTauriCardStore } from "$lib/card-store-tauri";
@@ -397,7 +398,8 @@
       </div>
 
       {#if editPreview}
-        <div class="edit-preview markdown">
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="edit-preview markdown" onclick={handleMarkdownClick}>
           {#if formContent.trim()}
             {@html marked.parse(formContent)}
           {:else}
