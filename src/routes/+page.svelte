@@ -344,8 +344,14 @@
 
 <!-- new card dialog -->
 {#if showNewDialog}
-  <div class="overlay" onclick={() => (showNewDialog = false)}>
-    <div class="dialog" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="overlay"
+    onclick={() => (showNewDialog = false)}
+    onkeydown={(e) => e.key === "Escape" && (showNewDialog = false)}
+    role="dialog"
+    tabindex="-1"
+  >
+    <div class="dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <h3>New Card</h3>
       <CardForm
         bind:name={formName}
@@ -368,8 +374,14 @@
 
 <!-- edit dialog -->
 {#if showEditDialog}
-  <div class="overlay" onclick={() => (showEditDialog = false)}>
-    <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="overlay"
+    onclick={() => (showEditDialog = false)}
+    onkeydown={(e) => e.key === "Escape" && (showEditDialog = false)}
+    role="dialog"
+    tabindex="-1"
+  >
+    <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <div class="edit-header">
         <h3>Edit Card</h3>
         <button type="button" class="btn small" onclick={() => (editPreview = !editPreview)}>
@@ -432,8 +444,14 @@
 
 <!-- help -->
 {#if showHelp}
-  <div class="overlay" onclick={() => (showHelp = false)}>
-    <div class="dialog help-dialog" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="overlay"
+    onclick={() => (showHelp = false)}
+    onkeydown={(e) => e.key === "Escape" && (showHelp = false)}
+    role="dialog"
+    tabindex="-1"
+  >
+    <div class="dialog help-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <h3>Keyboard Shortcuts</h3>
       <table>
         <tbody>
@@ -732,40 +750,7 @@
     font-weight: 600;
     margin-bottom: 4px;
   }
-  .target-badge {
-    font-size: 12px;
-    font-weight: 400;
-    color: #e94560;
-    margin-left: 6px;
-  }
-  .target-tabs {
-    display: flex;
-    gap: 4px;
-    background: #1a1a2e;
-    border-radius: 6px;
-    padding: 3px;
-  }
-  .tab {
-    flex: 1;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: #888;
-    font: inherit;
-    font-size: 12px;
-    cursor: pointer;
-    transition:
-      background 0.1s,
-      color 0.1s;
-  }
-  .tab.active {
-    background: #e94560;
-    color: #fff;
-  }
-  .tab:hover:not(.active) {
-    color: #ccc;
-  }
+
   .edit-dialog {
     min-width: 600px;
     max-width: 640px;
@@ -876,36 +861,12 @@
     margin-top: auto;
   }
 
-  .dialog input[type="text"],
-  .dialog textarea,
-  .dialog input[type="date"] {
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
-    border-radius: 6px;
-    padding: 8px 10px;
-    color: #e0e0e0;
-    font: inherit;
-    font-size: 13px;
-    outline: none;
-  }
-  .dialog input:focus,
-  .dialog textarea:focus {
-    border-color: #e94560;
-  }
-  .dialog textarea {
-    resize: vertical;
-  }
-
   .dialog-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
     margin-top: 4px;
-  }
-  .dialog-actions > div {
-    display: flex;
-    gap: 8px;
   }
 
   .btn {

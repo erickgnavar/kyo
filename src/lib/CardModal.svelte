@@ -19,8 +19,15 @@
   } = $props();
 </script>
 
-<div class="overlay" onclick={onclose}>
-  <div class="dialog card-dialog" onclick={(e) => e.stopPropagation()}>
+<div
+  class="overlay"
+  onclick={onclose}
+  onkeydown={(e) => e.key === "Escape" && onclose?.()}
+  role="dialog"
+  tabindex="-1"
+>
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <div class="dialog card-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
     <!-- header -->
     <div class="header">
       <h3>{card.name}</h3>
@@ -40,7 +47,7 @@
       <div class="sidebar">
         {#if card.tags.length > 0}
           <div class="meta-block">
-            <label>Tags</label>
+            <span>Tags</span>
             <div class="tags">
               {#each card.tags as tag}
                 <span class="tag">{tag}</span>
@@ -51,13 +58,13 @@
 
         {#if card.dueDate}
           <div class="meta-block">
-            <label>Due date</label>
+            <span>Due date</span>
             <span class="due-date">{card.dueDate}</span>
           </div>
         {/if}
 
         <div class="meta-block">
-          <label>Carried over</label>
+          <span>Carried over</span>
           <span class="score">{card.score ?? 0} ×</span>
         </div>
       </div>
@@ -152,80 +159,80 @@
     margin: 0;
   }
 
-  .markdown h1,
-  .markdown h2,
-  .markdown h3 {
+  :global(.markdown h1),
+  :global(.markdown h2),
+  :global(.markdown h3) {
     margin: 16px 0 8px;
     color: #e0e0e0;
   }
-  .markdown h1 {
+  :global(.markdown h1) {
     font-size: 18px;
   }
-  .markdown h2 {
+  :global(.markdown h2) {
     font-size: 16px;
   }
-  .markdown h3 {
+  :global(.markdown h3) {
     font-size: 14px;
   }
-  .markdown p {
+  :global(.markdown p) {
     margin: 0 0 8px;
   }
-  .markdown ul,
-  .markdown ol {
+  :global(.markdown ul),
+  :global(.markdown ol) {
     margin: 0 0 8px;
     padding-left: 20px;
   }
-  .markdown li {
+  :global(.markdown li) {
     margin-bottom: 2px;
   }
-  .markdown code {
+  :global(.markdown code) {
     font-size: 12px;
     background: #1a1a2e;
     border-radius: 3px;
     padding: 1px 4px;
   }
-  .markdown pre {
+  :global(.markdown pre) {
     background: #1a1a2e;
     border-radius: 6px;
     padding: 12px;
     overflow-x: auto;
     margin: 8px 0;
   }
-  .markdown pre code {
+  :global(.markdown pre code) {
     background: none;
     padding: 0;
   }
-  .markdown a {
+  :global(.markdown a) {
     color: #66b3ff;
     text-decoration: underline;
   }
-  .markdown a:hover {
+  :global(.markdown a:hover) {
     color: #99ccff;
   }
-  .markdown table {
+  :global(.markdown table) {
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0;
     font-size: 13px;
   }
-  .markdown th,
-  .markdown td {
+  :global(.markdown th),
+  :global(.markdown td) {
     border: 1px solid #0f3460;
     padding: 6px 10px;
     text-align: left;
   }
-  .markdown th {
+  :global(.markdown th) {
     background: #1a1a2e;
     color: #e0e0e0;
     font-weight: 600;
   }
-  .markdown td {
+  :global(.markdown td) {
     color: #ccc;
   }
-  .markdown tr:nth-child(even) {
+  :global(.markdown tr:nth-child(even)) {
     background: rgba(255, 255, 255, 0.02);
   }
-  .markdown blockquote {
+  :global(.markdown blockquote) {
     border-left: 3px solid #0f3460;
     margin: 8px 0;
     padding: 4px 12px;
@@ -253,7 +260,7 @@
     gap: 4px;
   }
 
-  .meta-block label {
+  .meta-block span {
     font-size: 10px;
     color: #888;
     text-transform: uppercase;

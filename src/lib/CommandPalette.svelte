@@ -56,15 +56,15 @@
 
 <svelte:window onkeydown={onKey} />
 
-<div class="overlay" onclick={onclose}>
-  <div class="palette" onclick={(e) => e.stopPropagation()}>
-    <input
-      type="text"
-      class="search"
-      placeholder="Type a command..."
-      bind:value={query}
-      autofocus
-    />
+<div
+  class="overlay"
+  onclick={onclose}
+  onkeydown={(e) => e.key === "Escape" && onclose()}
+  role="dialog"
+  tabindex="-1"
+>
+  <div class="palette" onclick={(e) => e.stopPropagation()} role="presentation">
+    <input type="text" class="search" placeholder="Type a command..." bind:value={query} />
 
     <div class="list">
       {#each filtered as action, i}
