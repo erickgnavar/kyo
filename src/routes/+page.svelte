@@ -440,8 +440,10 @@
 
 {#if showCommandPalette}
   <CommandPalette
+    {cards}
     onclose={() => (showCommandPalette = false)}
     onEndOfDay={() => store.endOfDay()}
+    onCardSelect={(id) => { viewingCardId = id; showCardModal = true; }}
   />
 {/if}
 
