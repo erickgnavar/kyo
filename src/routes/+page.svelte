@@ -277,7 +277,7 @@
 <div class="app">
   <!-- header -->
   <header class="header">
-    <h1>kyo</h1>
+    <h1><img src="/icon.svg" class="app-icon" alt="" /> kyo</h1>
     <span class="shortcut-hint">
       <kbd>?</kbd>
       help
@@ -576,6 +576,13 @@
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .app-icon {
+    width: 20px;
+    height: 20px;
     color: #e94560;
   }
   .shortcut-hint {
