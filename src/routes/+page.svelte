@@ -360,13 +360,7 @@
 
 <!-- new card dialog -->
 {#if showNewDialog}
-  <div
-    class="overlay"
-    onclick={() => (showNewDialog = false)}
-    onkeydown={(e) => e.key === "Escape" && (showNewDialog = false)}
-    role="dialog"
-    tabindex="-1"
-  >
+  <div class="overlay" onclick={() => (showNewDialog = false)} role="dialog" tabindex="-1">
     <div class="dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <h3>New Card</h3>
       <CardForm
@@ -391,13 +385,7 @@
 
 <!-- edit dialog -->
 {#if showEditDialog}
-  <div
-    class="overlay"
-    onclick={() => (showEditDialog = false)}
-    onkeydown={(e) => e.key === "Escape" && (showEditDialog = false)}
-    role="dialog"
-    tabindex="-1"
-  >
+  <div class="overlay" onclick={() => (showEditDialog = false)} role="dialog" tabindex="-1">
     <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <div class="edit-header">
         <h3>Edit Card</h3>
@@ -473,13 +461,7 @@
 
 <!-- help -->
 {#if showHelp}
-  <div
-    class="overlay"
-    onclick={() => (showHelp = false)}
-    onkeydown={(e) => e.key === "Escape" && (showHelp = false)}
-    role="dialog"
-    tabindex="-1"
-  >
+  <div class="overlay" onclick={() => (showHelp = false)} role="dialog" tabindex="-1">
     <div class="dialog help-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
       <h3>Keyboard Shortcuts</h3>
       <table>
