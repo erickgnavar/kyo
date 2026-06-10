@@ -32,6 +32,7 @@
   });
   let archivedCards = $derived(cards.filter((c) => c.archived && !c.done));
   let doneCards = $derived(cards.filter((c) => c.done));
+  let allTags = $derived([...new Set(cards.flatMap((c) => c.tags ?? []))].sort());
 
   // keep local snapshot in sync with store + initial load from backend
   $effect(() => {
@@ -358,6 +359,7 @@
         bind:content={formContent}
         bind:tags={formTags}
         bind:dueDate={formDueDate}
+        suggestions={allTags}
       />
       <div class="dialog-actions">
         <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
@@ -405,6 +407,7 @@
           bind:tags={formTags}
           bind:dueDate={formDueDate}
           editMode
+          suggestions={allTags}
         />
       {/if}
 
