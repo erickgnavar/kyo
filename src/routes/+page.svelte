@@ -309,7 +309,12 @@
               class:selected={ci === colIdx && ri === rowIdx}
               onclick={() => { colIdx = ci; rowIdx = ri; viewingCardId = card.id; showCardModal = true; }}
             >
-              <div class="card-name">{card.name}</div>
+              <div class="card-row">
+                <div class="card-name">{card.name}</div>
+                {#if col.id === "upcoming" && card.dueDate}
+                  <div class="card-due">{card.dueDate}</div>
+                {/if}
+              </div>
             </button>
           {:else}
             <div class="empty">no cards</div>
@@ -686,9 +691,22 @@
     border-color: #e94560;
     background: #2d3858;
   }
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
   .card-name {
     font-weight: 500;
     font-size: 14px;
+    min-width: 0;
+  }
+  .card-due {
+    font-size: 11px;
+    color: #e94560;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .empty {
     text-align: center;
