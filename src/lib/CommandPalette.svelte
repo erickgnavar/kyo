@@ -86,7 +86,7 @@
     mode === "search" && query.trim()
       ? cards
           .filter(
-            (c) => !c.archived && !c.done && c.name.toLowerCase().includes(query.toLowerCase()),
+            (c) => !c.archived && !c.doneAt && c.name.toLowerCase().includes(query.toLowerCase()),
           )
           .slice(0, 20)
       : [],

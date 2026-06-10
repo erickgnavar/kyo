@@ -18,7 +18,6 @@ pub struct Card {
     pub created_at: u64,
     pub due_date: Option<String>,
     pub archived: Option<bool>,
-    pub done: Option<bool>,
     pub score: i64,
     pub done_at: Option<i64>,
 }
@@ -38,9 +37,6 @@ fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
         archived: row
             .get::<_, i32>("archived")
             .map(|v| if v == 1 { Some(true) } else { None })?,
-        done: row
-            .get::<_, i32>("done")
-            .map(|v| if v == 1 { Some(true) } else { None })?,
         score: row.get("score")?,
         done_at: row.get("done_at")?,
     })
@@ -54,6 +50,7 @@ const MIGRATIONS: &[M] = &[
     M::up(include_str!("../migrations/001_init.sql")),
     M::up(include_str!("../migrations/002_add_score.sql")),
     M::up(include_str!("../migrations/003_add_done_at.sql")),
+    M::up(include_str!("../migrations/004_drop_done_column.sql")),
 ];
 
 fn migrate(conn: &mut Connection) {
@@ -96,7 +93,7 @@ fn get_cards(db: State<Mutex<Connection>>) -> Vec<Card> {
     let conn = db.lock().unwrap();
     let mut stmt = conn
         .prepare(
-            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done, score, done_at
+            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, score, done_at
              FROM cards ORDER BY
                CASE WHEN column_name = 'backlog' THEN -score ELSE 0 END,
                sort_order",
@@ -173,15 +170,15 @@ fn add_card(
     };
 
     conn.execute(
-        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, done, score, done_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0, 0, NULL)",
+        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, score, done_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0, NULL)",
         rusqlite::params![id, name, content, tags_json, column, now, sort_order, due_date],
     )
     .unwrap();
 
     // Read back the inserted card
     conn.query_row(
-        "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done, score, done_at
+        "SELECT id, name, content, tags, column_name, created_at, due_date, archived, score, done_at
          FROM cards WHERE id = ?1",
         rusqlite::params![id],
         row_to_card,
@@ -306,7 +303,7 @@ fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
     let cards: Vec<(String, i64)> = conn
         .prepare(
             "SELECT id, sort_order FROM cards
-             WHERE column_name = ?1 AND archived = 0 AND done = 0
+             WHERE column_name = ?1 AND archived = 0 AND done_at IS NULL
              ORDER BY sort_order",
         )
         .unwrap()
@@ -375,7 +372,7 @@ fn mark_done(db: State<Mutex<Connection>>, id: String) {
         .unwrap()
         .as_millis() as i64;
     conn.execute(
-        "UPDATE cards SET done = 1, done_at = ?1 WHERE id = ?2",
+        "UPDATE cards SET done_at = ?1 WHERE id = ?2",
         rusqlite::params![now, id],
     )
     .unwrap();
@@ -385,7 +382,7 @@ fn mark_done(db: State<Mutex<Connection>>, id: String) {
 fn unmark_done(db: State<Mutex<Connection>>, id: String) {
     let conn = db.lock().unwrap();
     conn.execute(
-        "UPDATE cards SET done = 0, done_at = NULL WHERE id = ?1",
+        "UPDATE cards SET done_at = NULL WHERE id = ?1",
         rusqlite::params![id],
     )
     .unwrap();
@@ -401,8 +398,8 @@ fn get_weekly_review(db: State<Mutex<Connection>>) -> Vec<Card> {
         - 7 * 24 * 60 * 60 * 1000;
     let mut stmt = conn
         .prepare(
-            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, done, score, done_at
-             FROM cards WHERE done = 1 AND done_at >= ?1
+            "SELECT id, name, content, tags, column_name, created_at, due_date, archived, score, done_at
+             FROM cards WHERE done_at >= ?1
              ORDER BY done_at DESC",
         )
         .unwrap();
@@ -419,7 +416,7 @@ fn end_of_day(db: State<Mutex<Connection>>) {
         "UPDATE cards
          SET column_name = 'backlog',
              score = score + 1
-         WHERE column_name = 'today' AND archived = 0 AND done = 0",
+         WHERE column_name = 'today' AND archived = 0 AND done_at IS NULL",
         [],
     )
     .unwrap();

@@ -24,15 +24,15 @@
 
   let grouped: Record<string, Card[]> = $derived({
     backlog: cards
-      .filter((c) => c.column === "backlog" && !c.archived && !c.done)
+      .filter((c) => c.column === "backlog" && !c.archived && !c.doneAt)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
-    today: cards.filter((c) => c.column === "today" && !c.archived && !c.done),
+    today: cards.filter((c) => c.column === "today" && !c.archived && !c.doneAt),
     upcoming: cards
-      .filter((c) => c.column === "backlog" && c.dueDate && !c.archived && !c.done)
+      .filter((c) => c.column === "backlog" && c.dueDate && !c.archived && !c.doneAt)
       .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? "")),
   });
-  let archivedCards = $derived(cards.filter((c) => c.archived && !c.done));
-  let doneCards = $derived(cards.filter((c) => c.done));
+  let archivedCards = $derived(cards.filter((c) => c.archived && !c.doneAt));
+  let doneCards = $derived(cards.filter((c) => !!c.doneAt));
   let allTags = $derived([...new Set(cards.flatMap((c) => c.tags ?? []))].sort());
 
   // keep local snapshot in sync with store + initial load from backend

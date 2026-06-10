@@ -23,7 +23,6 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       createdAt: raw.created_at,
       dueDate: raw.due_date ?? undefined,
       archived: raw.archived ?? undefined,
-      done: raw.done ?? undefined,
       score: raw.score ?? 0,
       doneAt: raw.done_at ?? undefined,
     };
@@ -49,15 +48,15 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     },
 
     getByColumn(col: ColumnId) {
-      return _cards.filter((c) => c.column === col && !c.archived && !c.done);
+      return _cards.filter((c) => c.column === col && !c.archived && !c.doneAt);
     },
 
     getArchived() {
-      return _cards.filter((c) => c.archived && !c.done);
+      return _cards.filter((c) => c.archived && !c.doneAt);
     },
 
     getDone() {
-      return _cards.filter((c) => c.done);
+      return _cards.filter((c) => c.doneAt);
     },
 
     add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
@@ -74,7 +73,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       };
 
       if (col === "today") {
-        const todayCards = _cards.filter((c) => c.column === "today" && !c.archived && !c.done);
+        const todayCards = _cards.filter((c) => c.column === "today" && !c.archived && !c.doneAt);
         if (todayCards.length === 0) {
           _cards = [..._cards, card];
         } else {
@@ -142,7 +141,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       if (idx === -1) return;
       const col = _cards[idx].column;
       for (let i = idx + direction; i >= 0 && i < _cards.length; i += direction) {
-        if (_cards[i].column === col && !_cards[i].archived && !_cards[i].done) {
+        if (_cards[i].column === col && !_cards[i].archived && !_cards[i].doneAt) {
           const arr = [..._cards];
           [arr[idx], arr[i]] = [arr[i], arr[idx]];
           _cards = arr;
@@ -166,13 +165,13 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     },
 
     markDone(id: string) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, done: true } : c));
+      _cards = _cards.map((c) => (c.id === id ? { ...c, doneAt: Date.now() } : c));
       _notify();
       invoke("mark_done", { id });
     },
 
     unmarkDone(id: string) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, done: false } : c));
+      _cards = _cards.map((c) => (c.id === id ? { ...c, doneAt: undefined } : c));
       _notify();
       invoke("unmark_done", { id });
     },
@@ -180,7 +179,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     endOfDay() {
       // Optimistically clear today column, then refresh from backend
       const todayIds = _cards
-        .filter((c) => c.column === "today" && !c.archived && !c.done)
+        .filter((c) => c.column === "today" && !c.archived && !c.doneAt)
         .map((c) => c.id);
       _cards = _cards.map((c) =>
         todayIds.includes(c.id) ? { ...c, column: "backlog", score: (c.score ?? 0) + 1 } : c,

@@ -9,7 +9,6 @@ export interface Card {
   createdAt: number;
   dueDate?: string;
   archived?: boolean;
-  done?: boolean;
   score?: number;
   doneAt?: number;
 }
