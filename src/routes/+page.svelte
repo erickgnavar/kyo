@@ -306,7 +306,7 @@
               class="card"
               class:working={col.id === "today" && ri === 0}
               class:selected={ci === colIdx && ri === rowIdx}
-              onclick={() => { colIdx = ci; rowIdx = ri; }}
+              onclick={() => { colIdx = ci; rowIdx = ri; viewingCardId = card.id; showCardModal = true; }}
             >
               <div class="card-name">{card.name}</div>
             </button>
