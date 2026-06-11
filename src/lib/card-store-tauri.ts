@@ -7,15 +7,9 @@ import type { Card, ColumnId } from "./types.ts";
 export function createTauriCardStore(): CardStore & { init: () => Promise<void> } {
   let _cards: Card[] = [];
   const _listeners = new Set<() => void>();
-  let _tempIdCounter = 0;
 
   function _notify() {
     for (const fn of _listeners) fn();
-  }
-
-  /** Generate a temporary string ID for optimistic updates. */
-  function _tempId(): string {
-    return `temp-${--_tempIdCounter}`;
   }
 
   /** Normalize an id parameter to a numeric value for IPC calls. */
@@ -70,18 +64,16 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       return _cards.filter((c) => c.doneAt);
     },
 
-    add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
-      // Optimistic local update
-      const id = _tempId();
-      const card: Card = {
-        id,
+    async add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
+      const raw = await invoke("add_card", {
+        column: col,
         name,
         content,
         tags,
-        column: col,
-        createdAt: Date.now(),
-        dueDate: dueDate || undefined,
-      };
+        dueDate: dueDate ?? null,
+      });
+
+      const card = _parse(raw);
 
       if (col === "today") {
         const todayCards = _cards.filter((c) => c.column === "today" && !c.archived && !c.doneAt);
@@ -100,30 +92,23 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       }
       _notify();
 
-      // Fire-and-forget to backend
-      invoke("add_card", {
-        column: col,
-        name,
-        content,
-        tags,
-        dueDate: dueDate ?? null,
-      }).then((raw: any) => {
-        // On success, reconcile: replace our temporary id with the backend's id
-        if (raw?.id) {
-          _cards = _cards.map((c) => (c.id === id ? _parse(raw) : c));
-          _notify();
-        }
-      });
-
       return card;
     },
 
-    update(
+    async update(
       id: number | string,
       data: { name?: string; content?: string; tags?: string[]; dueDate?: string },
     ) {
-      // Optimistic local update
       const sid = String(id);
+
+      await invoke("update_card", {
+        id: _toNumber(id),
+        name: data.name ?? null,
+        content: data.content ?? null,
+        tags: data.tags ?? null,
+        dueDate: data.dueDate ?? null,
+      });
+
       const updateFields: Partial<Card> = {};
       if (data.name !== undefined) updateFields.name = data.name;
       if (data.content !== undefined) updateFields.content = data.content;
@@ -132,85 +117,65 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
 
       _cards = _cards.map((c) => (c.id === sid ? { ...c, ...updateFields } : c));
       _notify();
-
-      invoke("update_card", {
-        id: _toNumber(id),
-        name: data.name ?? null,
-        content: data.content ?? null,
-        tags: data.tags ?? null,
-        dueDate: data.dueDate ?? null,
-      });
     },
 
-    moveToColumn(id: number | string, target: ColumnId) {
+    async moveToColumn(id: number | string, target: ColumnId) {
       const sid = String(id);
+      await invoke("move_to_column", { id: _toNumber(id), target });
       _cards = _cards.map((c) => (c.id === sid ? { ...c, column: target } : c));
       _notify();
-      invoke("move_to_column", { id: _toNumber(id), target });
     },
 
-    moveWithinColumn(id: number | string, direction: -1 | 1) {
+    async moveWithinColumn(id: number | string, direction: -1 | 1) {
       const sid = String(id);
       const idx = _cards.findIndex((c) => c.id === sid);
       if (idx === -1) return;
       const col = _cards[idx].column;
       for (let i = idx + direction; i >= 0 && i < _cards.length; i += direction) {
         if (_cards[i].column === col && !_cards[i].archived && !_cards[i].doneAt) {
+          await invoke("move_within_column", { id: _toNumber(id), direction });
           const arr = [..._cards];
           [arr[idx], arr[i]] = [arr[i], arr[idx]];
           _cards = arr;
           _notify();
-          invoke("move_within_column", { id: _toNumber(id), direction });
           return;
         }
       }
     },
 
-    archive(id: number | string) {
+    async archive(id: number | string) {
       const sid = String(id);
+      await invoke("archive_card", { id: _toNumber(id) });
       _cards = _cards.map((c) => (c.id === sid ? { ...c, archived: true } : c));
       _notify();
-      invoke("archive_card", { id: _toNumber(id) });
     },
 
-    restore(id: number | string, col: ColumnId) {
+    async restore(id: number | string, col: ColumnId) {
       const sid = String(id);
+      await invoke("restore_card", { id: _toNumber(id), column: col });
       _cards = _cards.map((c) => (c.id === sid ? { ...c, archived: false, column: col } : c));
       _notify();
-      invoke("restore_card", { id: _toNumber(id), column: col });
     },
 
-    markDone(id: number | string) {
+    async markDone(id: number | string) {
       const sid = String(id);
+      await invoke("mark_done", { id: _toNumber(id) });
       _cards = _cards.map((c) => (c.id === sid ? { ...c, doneAt: Date.now() } : c));
       _notify();
-      invoke("mark_done", { id: _toNumber(id) });
     },
 
-    unmarkDone(id: number | string) {
+    async unmarkDone(id: number | string) {
       const sid = String(id);
+      await invoke("unmark_done", { id: _toNumber(id) });
       _cards = _cards.map((c) => (c.id === sid ? { ...c, doneAt: undefined } : c));
       _notify();
-      invoke("unmark_done", { id: _toNumber(id) });
     },
 
-    endOfDay() {
-      // Optimistically clear today column, then refresh from backend
-      const todayIds = _cards
-        .filter((c) => c.column === "today" && !c.archived && !c.doneAt)
-        .map((c) => c.id);
-      _cards = _cards.map((c) =>
-        todayIds.includes(c.id) ? { ...c, column: "backlog", score: (c.score ?? 0) + 1 } : c,
-      );
+    async endOfDay() {
+      await invoke("end_of_day");
+      const raw = await invoke<any[]>("get_cards");
+      _cards = raw.map(_parse);
       _notify();
-
-      invoke("end_of_day").then(() => {
-        // Reconcile with backend after the mutation
-        invoke("get_cards").then((raw: any) => {
-          _cards = raw.map(_parse);
-          _notify();
-        });
-      });
     },
 
     async getWeeklyReview(): Promise<Card[]> {

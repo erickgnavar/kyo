@@ -120,13 +120,13 @@
     showEditDialog = true;
   }
 
-  function submitEdit() {
+  async function submitEdit() {
     if (!editId || !formName.trim()) return;
     const tags = formTags
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    store.update(editId, {
+    await store.update(editId, {
       name: formName.trim(),
       content: formContent.trim(),
       tags,
@@ -136,20 +136,20 @@
     editId = null;
   }
 
-  function submitNewCard() {
+  async function submitNewCard() {
     const name = formName.trim();
     if (!name) return;
     const tags = formTags
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    store.add("backlog", name, formContent.trim(), tags, formDueDate || undefined);
+    await store.add("backlog", name, formContent.trim(), tags, formDueDate || undefined);
     showNewDialog = false;
     colIdx = COLUMNS.findIndex((c) => c.id === "backlog");
     rowIdx = store.getByColumn("backlog").length - 1;
   }
 
-  function onKey(e: KeyboardEvent) {
+  async function onKey(e: KeyboardEvent) {
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
     if (
@@ -175,11 +175,11 @@
       }
       if (showNewDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        submitNewCard();
+        await submitNewCard();
       }
       if (showEditDialog && (key === "Enter" || key === "enter") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        submitEdit();
+        await submitEdit();
       }
       if (showEditDialog && (key === "p" || key === "P") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -197,7 +197,7 @@
         e.preventDefault();
         const card = cards.find((c) => c.id === viewingCardId);
         if (card && !card.archived && !card.doneAt) {
-          store.markDone(card.id);
+          await store.markDone(card.id);
           showCardModal = false;
           viewingCardId = null;
         }
@@ -210,7 +210,7 @@
         e.preventDefault();
         if (e.shiftKey) {
           if (visibleCards[rowIdx] && rowIdx < visibleCards.length - 1) {
-            store.moveWithinColumn(visibleCards[rowIdx].id, 1);
+            await store.moveWithinColumn(visibleCards[rowIdx].id, 1);
             rowIdx += 1;
           }
         } else {
@@ -221,7 +221,7 @@
         e.preventDefault();
         if (e.shiftKey) {
           if (visibleCards[rowIdx] && rowIdx > 0) {
-            store.moveWithinColumn(visibleCards[rowIdx].id, -1);
+            await store.moveWithinColumn(visibleCards[rowIdx].id, -1);
             rowIdx -= 1;
           }
         } else {
@@ -242,11 +242,11 @@
         break;
       case "t":
         e.preventDefault();
-        if (visibleCards[rowIdx]) store.moveToColumn(visibleCards[rowIdx].id, "today");
+        if (visibleCards[rowIdx]) await store.moveToColumn(visibleCards[rowIdx].id, "today");
         break;
       case "b":
         e.preventDefault();
-        if (visibleCards[rowIdx]) store.moveToColumn(visibleCards[rowIdx].id, "backlog");
+        if (visibleCards[rowIdx]) await store.moveToColumn(visibleCards[rowIdx].id, "backlog");
         break;
       case "Enter":
         e.preventDefault();
@@ -257,11 +257,11 @@
         break;
       case "d":
         e.preventDefault();
-        if (visibleCards[rowIdx]) store.archive(visibleCards[rowIdx].id);
+        if (visibleCards[rowIdx]) await store.archive(visibleCards[rowIdx].id);
         break;
       case "x":
         e.preventDefault();
-        if (visibleCards[rowIdx]) store.markDone(visibleCards[rowIdx].id);
+        if (visibleCards[rowIdx]) await store.markDone(visibleCards[rowIdx].id);
         break;
       case "a":
         e.preventDefault();
@@ -444,7 +444,7 @@
       columns={COLUMNS}
       onclose={() => { showCardModal = false; viewingCardId = null; }}
       onedit={() => { showCardModal = false; openEditFor(card); }}
-      ondone={() => { store.markDone(card.id); showCardModal = false; viewingCardId = null; }}
+      ondone={async () => { await store.markDone(card.id); showCardModal = false; viewingCardId = null; }}
     />
   {/if}
 {/if}
@@ -454,7 +454,7 @@
     {cards}
     columnTitles={{ backlog: "Backlog", today: "Today", upcoming: "Upcoming" }}
     onclose={() => (showCommandPalette = false)}
-    onEndOfDay={() => store.endOfDay()}
+    onEndOfDay={async () => { await store.endOfDay() }}
     onCardSelect={(id) => { viewingCardId = id; showCardModal = true; }}
     onViewArchived={() => (showArchived = true)}
     onViewDone={() => (showDone = true)}
@@ -543,9 +543,9 @@
     title="Archived Cards ({archivedCards.length})"
     cards={archivedCards}
     onclose={() => (showArchived = false)}
-    restore={(c) => store.restore(c.id, "backlog")}
+    restore={async (c) => { await store.restore(c.id, "backlog") }}
     label="Restore to Backlog"
-    secondaryRestore={(c) => store.restore(c.id, "today")}
+    secondaryRestore={async (c) => { await store.restore(c.id, "today") }}
     secondaryLabel="Restore to Today"
     oncardclick={(c) => { showArchived = false; viewingCardId = c.id; showCardModal = true; }}
   />
@@ -557,7 +557,7 @@
     title="Done Cards ({doneCards.length})"
     cards={doneCards}
     onclose={() => (showDone = false)}
-    restore={(c) => store.unmarkDone(c.id)}
+    restore={async (c) => { await store.unmarkDone(c.id) }}
     oncardclick={(c) => { showDone = false; viewingCardId = c.id; showCardModal = true; }}
   />
 {/if}

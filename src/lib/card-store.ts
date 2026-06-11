@@ -16,7 +16,13 @@ export interface CardStore {
   getArchived(): Card[];
   getDone(): Card[];
 
-  add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string): Card;
+  add(
+    col: ColumnId,
+    name: string,
+    content: string,
+    tags: string[],
+    dueDate?: string,
+  ): Promise<Card>;
   update(
     id: number | string,
     data: {
@@ -25,13 +31,13 @@ export interface CardStore {
       tags?: string[];
       dueDate?: string;
     },
-  ): void;
-  moveToColumn(id: number | string, target: ColumnId): void;
-  moveWithinColumn(id: number | string, direction: -1 | 1): void;
-  archive(id: number | string): void;
-  restore(id: number | string, col: ColumnId): void;
-  markDone(id: number | string): void;
-  unmarkDone(id: number | string): void;
-  endOfDay(): void;
+  ): Promise<void>;
+  moveToColumn(id: number | string, target: ColumnId): Promise<void>;
+  moveWithinColumn(id: number | string, direction: -1 | 1): Promise<void>;
+  archive(id: number | string): Promise<void>;
+  restore(id: number | string, col: ColumnId): Promise<void>;
+  markDone(id: number | string): Promise<void>;
+  unmarkDone(id: number | string): Promise<void>;
+  endOfDay(): Promise<void>;
   getWeeklyReview(): Promise<Card[]>;
 }
