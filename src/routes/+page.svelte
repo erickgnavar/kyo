@@ -43,9 +43,7 @@
     const unsub = store.onUpdate(() => {
       cards = store.cards;
     });
-    store.init().then(() => {
-      cards = store.cards;
-    });
+    store.init();
     return unsub;
   });
 
