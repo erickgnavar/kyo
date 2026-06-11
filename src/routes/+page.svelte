@@ -5,6 +5,7 @@
   import CardModal from "$lib/CardModal.svelte";
   import CommandPalette from "$lib/CommandPalette.svelte";
   import WeeklyReview from "$lib/WeeklyReview.svelte";
+  import { relativeTime } from "$lib/dates";
   import { handleMarkdownClick } from "$lib/links";
   import { marked } from "marked";
   import type { CardStore } from "$lib/card-store";
@@ -324,7 +325,7 @@
               <div class="card-row">
                 <div class="card-name">{card.name}</div>
                 {#if col.id === "upcoming" && card.dueDate}
-                  <div class="card-due">{card.dueDate}</div>
+                  <div class="card-due">{relativeTime(card.dueDate)}</div>
                 {/if}
               </div>
             </button>
