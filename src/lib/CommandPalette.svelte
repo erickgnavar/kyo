@@ -84,13 +84,15 @@
 
   let cardResults = $derived(
     mode === "search" && query.trim()
-      ? cards
-          .filter(
-            (c) => !c.archived && !c.doneAt && c.name.toLowerCase().includes(query.toLowerCase()),
-          )
-          .slice(0, 20)
+      ? cards.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())).slice(0, 20)
       : [],
   );
+
+  function cardDesc(c: Card) {
+    if (c.doneAt) return "Done";
+    if (c.archived) return "Archived";
+    return columnTitles[c.column] ?? c.column;
+  }
 
   let filtered = $derived(
     mode === "commands"
@@ -193,7 +195,7 @@
       {:else}
         {#each cardResults as card, i}
           <button
-            class="item"
+            class="item row"
             class:selected={i === selected}
             onclick={() => {
               selected = i;
@@ -202,7 +204,7 @@
             }}
           >
             <span class="label">{card.name}</span>
-            <span class="desc">{columnTitles[card.column] ?? card.column}</span>
+            <span class="desc">{cardDesc(card)}</span>
           </button>
         {:else}
           <div class="empty">
@@ -282,6 +284,17 @@
 
   .item:hover {
     background: #1e2a4a;
+  }
+
+  .item.row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item.row .desc {
+    flex-shrink: 0;
+    margin-left: 12px;
   }
 
   .label {
