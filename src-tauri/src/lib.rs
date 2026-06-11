@@ -10,7 +10,7 @@ use tauri::{Manager, State};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Card {
-    pub id: String,
+    pub id: i64,
     pub name: String,
     pub content: String,
     pub tags: Vec<String>,
@@ -51,6 +51,7 @@ const MIGRATIONS: &[M] = &[
     M::up(include_str!("../migrations/002_add_score.sql")),
     M::up(include_str!("../migrations/003_add_done_at.sql")),
     M::up(include_str!("../migrations/004_drop_done_column.sql")),
+    M::up(include_str!("../migrations/005_autoincrement_id.sql")),
 ];
 
 fn migrate(conn: &mut Connection) {
@@ -125,32 +126,21 @@ fn add_card(
     let tags_json = serde_json::to_string(&tags).unwrap();
     let now = now_ms();
 
-    // Compute next ID
-    let next_id: i64 = conn
-        .query_row(
-            "SELECT COALESCE(MAX(CAST(id AS INTEGER)), 0) + 1 FROM cards",
-            [],
-            |row| row.get(0),
-        )
-        .unwrap();
-    let id = next_id.to_string();
-
     // Compute sort_order: if today, insert after first today card
     let sort_order: i64 = if column == "today" {
-        let first_today: Option<(String, i64)> = conn
+        let first_today: Option<i64> = conn
             .query_row(
-                "SELECT id, sort_order FROM cards
+                "SELECT sort_order FROM cards
                  WHERE column_name = 'today' AND archived = 0
                  ORDER BY sort_order LIMIT 1",
                 [],
-                |row| Ok((row.get(0)?, row.get(1)?)),
+                |row| row.get(0),
             )
             .ok();
 
         match first_today {
             None => 0,
-            Some((ref first_id, ref order)) if *first_id == id => *order + 1,
-            Some((_, order)) => {
+            Some(order) => {
                 // Shift all subsequent today cards down by 1, insert after first
                 conn.execute(
                     "UPDATE cards SET sort_order = sort_order + 1
@@ -173,18 +163,21 @@ fn add_card(
         max_order + 1
     };
 
+    // Omit id — SQLite's AUTOINCREMENT will assign it
     conn.execute(
-        "INSERT INTO cards (id, name, content, tags, column_name, created_at, sort_order, due_date, archived, score, done_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 0, 0, NULL)",
-        rusqlite::params![id, name, content, tags_json, column, now, sort_order, due_date],
+        "INSERT INTO cards (name, content, tags, column_name, created_at, sort_order, due_date, archived, score, done_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 0, 0, NULL)",
+        rusqlite::params![name, content, tags_json, column, now, sort_order, due_date],
     )
     .unwrap();
+
+    let new_id = conn.last_insert_rowid();
 
     // Read back the inserted card
     conn.query_row(
         "SELECT id, name, content, tags, column_name, created_at, due_date, archived, score, done_at
          FROM cards WHERE id = ?1",
-        rusqlite::params![id],
+        rusqlite::params![new_id],
         row_to_card,
     )
     .unwrap()
@@ -193,7 +186,7 @@ fn add_card(
 #[tauri::command]
 fn update_card(
     db: State<Mutex<Connection>>,
-    id: String,
+    id: i64,
     name: Option<String>,
     content: Option<String>,
     tags: Option<Vec<String>>,
@@ -244,7 +237,7 @@ fn update_card(
 }
 
 #[tauri::command]
-fn move_to_column(db: State<Mutex<Connection>>, id: String, target: String) {
+fn move_to_column(db: State<Mutex<Connection>>, id: i64, target: String) {
     let conn = db.lock().unwrap();
 
     let new_order: i64 = if target == "today" {
@@ -292,7 +285,7 @@ fn move_to_column(db: State<Mutex<Connection>>, id: String, target: String) {
 }
 
 #[tauri::command]
-fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
+fn move_within_column(db: State<Mutex<Connection>>, id: i64, direction: i8) {
     let conn = db.lock().unwrap();
 
     // Read all visible cards in the same column in current order
@@ -304,7 +297,7 @@ fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
         )
         .unwrap();
 
-    let cards: Vec<(String, i64)> = conn
+    let cards: Vec<(i64, i64)> = conn
         .prepare(
             "SELECT id, sort_order FROM cards
              WHERE column_name = ?1 AND archived = 0 AND done_at IS NULL
@@ -312,7 +305,7 @@ fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
         )
         .unwrap()
         .query_map(rusqlite::params![col], |row| {
-            let cid: String = row.get(0)?;
+            let cid: i64 = row.get(0)?;
             let order: i64 = row.get(1)?;
             Ok((cid, order))
         })
@@ -349,7 +342,7 @@ fn move_within_column(db: State<Mutex<Connection>>, id: String, direction: i8) {
 }
 
 #[tauri::command]
-fn archive_card(db: State<Mutex<Connection>>, id: String) {
+fn archive_card(db: State<Mutex<Connection>>, id: i64) {
     let conn = db.lock().unwrap();
     conn.execute(
         "UPDATE cards SET archived = 1 WHERE id = ?1",
@@ -359,7 +352,7 @@ fn archive_card(db: State<Mutex<Connection>>, id: String) {
 }
 
 #[tauri::command]
-fn restore_card(db: State<Mutex<Connection>>, id: String, column: String) {
+fn restore_card(db: State<Mutex<Connection>>, id: i64, column: String) {
     let conn = db.lock().unwrap();
     conn.execute(
         "UPDATE cards SET archived = 0, column_name = ?1 WHERE id = ?2",
@@ -369,7 +362,7 @@ fn restore_card(db: State<Mutex<Connection>>, id: String, column: String) {
 }
 
 #[tauri::command]
-fn mark_done(db: State<Mutex<Connection>>, id: String) {
+fn mark_done(db: State<Mutex<Connection>>, id: i64) {
     let conn = db.lock().unwrap();
     let now = now_ms() as i64;
     conn.execute(
@@ -380,7 +373,7 @@ fn mark_done(db: State<Mutex<Connection>>, id: String) {
 }
 
 #[tauri::command]
-fn unmark_done(db: State<Mutex<Connection>>, id: String) {
+fn unmark_done(db: State<Mutex<Connection>>, id: i64) {
     let conn = db.lock().unwrap();
     conn.execute(
         "UPDATE cards SET done_at = NULL WHERE id = ?1",

@@ -7,15 +7,26 @@ import type { Card, ColumnId } from "./types.ts";
 export function createTauriCardStore(): CardStore & { init: () => Promise<void> } {
   let _cards: Card[] = [];
   const _listeners = new Set<() => void>();
+  let _tempIdCounter = 0;
 
   function _notify() {
     for (const fn of _listeners) fn();
   }
 
+  /** Generate a temporary string ID for optimistic updates. */
+  function _tempId(): string {
+    return `temp-${--_tempIdCounter}`;
+  }
+
+  /** Normalize an id parameter to a numeric value for IPC calls. */
+  function _toNumber(id: number | string): number {
+    return typeof id === "number" ? id : Number(id);
+  }
+
   /** Parse a raw card from the backend (snake_case fields → camelCase). */
   function _parse(raw: any): Card {
     return {
-      id: raw.id,
+      id: String(raw.id),
       name: raw.name,
       content: raw.content,
       tags: raw.tags ?? [],
@@ -43,8 +54,8 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       return () => _listeners.delete(fn);
     },
 
-    getById(id: string) {
-      return _cards.find((c) => c.id === id);
+    getById(id: number | string) {
+      return _cards.find((c) => c.id === String(id));
     },
 
     getByColumn(col: ColumnId) {
@@ -61,7 +72,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
 
     add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
       // Optimistic local update
-      const id = crypto.randomUUID();
+      const id = _tempId();
       const card: Card = {
         id,
         name,
@@ -108,21 +119,22 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     },
 
     update(
-      id: string,
+      id: number | string,
       data: { name?: string; content?: string; tags?: string[]; dueDate?: string },
     ) {
       // Optimistic local update
+      const sid = String(id);
       const updateFields: Partial<Card> = {};
       if (data.name !== undefined) updateFields.name = data.name;
       if (data.content !== undefined) updateFields.content = data.content;
       if (data.tags !== undefined) updateFields.tags = data.tags;
       if (data.dueDate !== undefined) updateFields.dueDate = data.dueDate;
 
-      _cards = _cards.map((c) => (c.id === id ? { ...c, ...updateFields } : c));
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, ...updateFields } : c));
       _notify();
 
       invoke("update_card", {
-        id,
+        id: _toNumber(id),
         name: data.name ?? null,
         content: data.content ?? null,
         tags: data.tags ?? null,
@@ -130,14 +142,16 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
       });
     },
 
-    moveToColumn(id: string, target: ColumnId) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, column: target } : c));
+    moveToColumn(id: number | string, target: ColumnId) {
+      const sid = String(id);
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, column: target } : c));
       _notify();
-      invoke("move_to_column", { id, target });
+      invoke("move_to_column", { id: _toNumber(id), target });
     },
 
-    moveWithinColumn(id: string, direction: -1 | 1) {
-      const idx = _cards.findIndex((c) => c.id === id);
+    moveWithinColumn(id: number | string, direction: -1 | 1) {
+      const sid = String(id);
+      const idx = _cards.findIndex((c) => c.id === sid);
       if (idx === -1) return;
       const col = _cards[idx].column;
       for (let i = idx + direction; i >= 0 && i < _cards.length; i += direction) {
@@ -146,34 +160,38 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
           [arr[idx], arr[i]] = [arr[i], arr[idx]];
           _cards = arr;
           _notify();
-          invoke("move_within_column", { id, direction });
+          invoke("move_within_column", { id: _toNumber(id), direction });
           return;
         }
       }
     },
 
-    archive(id: string) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, archived: true } : c));
+    archive(id: number | string) {
+      const sid = String(id);
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, archived: true } : c));
       _notify();
-      invoke("archive_card", { id });
+      invoke("archive_card", { id: _toNumber(id) });
     },
 
-    restore(id: string, col: ColumnId) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, archived: false, column: col } : c));
+    restore(id: number | string, col: ColumnId) {
+      const sid = String(id);
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, archived: false, column: col } : c));
       _notify();
-      invoke("restore_card", { id, column: col });
+      invoke("restore_card", { id: _toNumber(id), column: col });
     },
 
-    markDone(id: string) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, doneAt: Date.now() } : c));
+    markDone(id: number | string) {
+      const sid = String(id);
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, doneAt: Date.now() } : c));
       _notify();
-      invoke("mark_done", { id });
+      invoke("mark_done", { id: _toNumber(id) });
     },
 
-    unmarkDone(id: string) {
-      _cards = _cards.map((c) => (c.id === id ? { ...c, doneAt: undefined } : c));
+    unmarkDone(id: number | string) {
+      const sid = String(id);
+      _cards = _cards.map((c) => (c.id === sid ? { ...c, doneAt: undefined } : c));
       _notify();
-      invoke("unmark_done", { id });
+      invoke("unmark_done", { id: _toNumber(id) });
     },
 
     endOfDay() {

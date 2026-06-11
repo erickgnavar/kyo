@@ -23,7 +23,7 @@
   // --- data store ---
   const store: CardStore & { init: () => Promise<void> } = createTauriCardStore();
 
-  let cards = $state(store.cards);
+  let cards: Card[] = $state(store.cards);
 
   let grouped: Record<string, Card[]> = $derived({
     backlog: cards
@@ -53,7 +53,7 @@
   let colIdx = $state(1);
   let rowIdx = $state(0);
   let showCardModal = $state(false);
-  let viewingCardId = $state<string | null>(null);
+  let viewingCardId: string | null = $state<string | null>(null);
   let showHelp = $state(false);
   let showNewDialog = $state(false);
   let showEditDialog = $state(false);
@@ -71,10 +71,10 @@
   let formDueDate = $state("");
 
   // edit-specific
-  let editId = $state<string | null>(null);
+  let editId: string | null = $state<string | null>(null);
 
   // --- derived ---
-  let visibleCards = $derived(grouped[COLUMNS[colIdx].id] ?? []);
+  let visibleCards: Card[] = $derived(grouped[COLUMNS[colIdx].id] ?? []);
 
   $effect(() => {
     if (rowIdx >= visibleCards.length) {
@@ -94,6 +94,10 @@
   });
 
   // --- helpers ---
+  function cardsFor(colId: string): Card[] {
+    return grouped[colId] ?? [];
+  }
+
   async function openWeeklyReview() {
     weeklyReviewCards = await store.getWeeklyReview();
     showWeeklyReview = true;
@@ -312,10 +316,10 @@
       <div class="column" class:active={ci === colIdx}>
         <div class="column-header">
           <h2>{col.title}</h2>
-          <span class="count">{grouped[col.id].length}</span>
+          <span class="count">{cardsFor(col.id).length}</span>
         </div>
         <div class="card-list">
-          {#each grouped[col.id] as card, ri (card.id)}
+          {#each cardsFor(col.id) as card, ri (card.id)}
             <button
               class="card"
               class:working={col.id === "today" && ri === 0}
