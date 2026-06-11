@@ -4,22 +4,13 @@
   let { cards, onclose }: { cards: Card[]; onclose: () => void } = $props();
 
   let grouped = $derived.by(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const groups: { label: string; cards: Card[] }[] = [];
-    const now = Date.now();
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     for (const card of cards) {
       if (!card.doneAt) continue;
       const date = new Date(card.doneAt);
-      date.setHours(0, 0, 0, 0);
-      const diff = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-      let label: string;
-      if (diff === 0) label = "Today";
-      else if (diff === 1) label = "Yesterday";
-      else if (diff < 7) label = `${diff} days ago`;
-      else label = date.toLocaleDateString();
+      const label = dayNames[date.getDay()];
 
       let group = groups.find((g) => g.label === label);
       if (!group) {
@@ -30,6 +21,26 @@
     }
     return groups;
   });
+
+  let copied = $state(false);
+
+  async function copyAsMarkdown() {
+    const now = new Date();
+    const header = `# Weekly Review — ${now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`;
+    const lines: string[] = [header, ""];
+
+    for (const group of grouped) {
+      lines.push(`## ${group.label}`);
+      for (const card of group.cards) {
+        const tags = card.tags.length > 0 ? " " + card.tags.map((t) => `\`#${t}\``).join(" ") : "";
+        lines.push(`- ${card.name}${tags}`);
+      }
+      lines.push("");
+    }
+    await navigator.clipboard.writeText(lines.join("\n"));
+    copied = true;
+    setTimeout(() => (copied = false), 1500);
+  }
 </script>
 
 <div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
@@ -66,6 +77,9 @@
     </div>
 
     <div class="dialog-actions">
+      <button type="button" class="btn" onclick={copyAsMarkdown}>
+        {copied ? "Copied!" : "Copy as Markdown"}
+      </button>
       <button type="button" class="btn primary" onclick={onclose}>Close</button>
     </div>
   </div>
@@ -182,7 +196,7 @@
 
   .dialog-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     flex-shrink: 0;
   }
 
