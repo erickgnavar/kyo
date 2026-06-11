@@ -9,6 +9,7 @@
     label = "Restore",
     secondaryRestore,
     secondaryLabel,
+    oncardclick,
   }: {
     title: string;
     cards: Card[];
@@ -17,6 +18,7 @@
     label?: string;
     secondaryRestore?: (card: Card) => void;
     secondaryLabel?: string;
+    oncardclick?: (card: Card) => void;
   } = $props();
 </script>
 
@@ -30,7 +32,8 @@
     {:else}
       <div class="list">
         {#each cards as card (card.id)}
-          <div class="item">
+          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+          <div class="item" class:clickable={!!oncardclick} onclick={() => oncardclick?.(card)}>
             <div class="item-name">{card.name}</div>
             {#if card.tags.length > 0}
               <div class="tags">
@@ -98,6 +101,15 @@
     border-radius: 6px;
     padding: 10px 12px;
     opacity: 0.7;
+  }
+
+  .item.clickable {
+    cursor: pointer;
+  }
+
+  .item.clickable:hover {
+    background: #1e2a4a;
+    opacity: 1;
   }
 
   .item-name {

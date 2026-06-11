@@ -542,6 +542,7 @@
     label="Restore to Backlog"
     secondaryRestore={(c) => store.restore(c.id, "today")}
     secondaryLabel="Restore to Today"
+    oncardclick={(c) => { showArchived = false; viewingCardId = c.id; showCardModal = true; }}
   />
 {/if}
 
@@ -552,6 +553,7 @@
     cards={doneCards}
     onclose={() => (showDone = false)}
     restore={(c) => store.unmarkDone(c.id)}
+    oncardclick={(c) => { showDone = false; viewingCardId = c.id; showCardModal = true; }}
   />
 {/if}
 
