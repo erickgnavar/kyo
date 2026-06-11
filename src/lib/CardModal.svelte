@@ -18,6 +18,7 @@
   } = $props();
 
   let html = $derived(card.content ? marked.parse(card.content) : "");
+  let isReadonly = $derived(!!card.archived || !!card.doneAt);
 </script>
 
 <div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
@@ -75,10 +76,10 @@
     <div class="dialog-actions">
       <button type="button" class="btn" onclick={onclose}>Close</button>
       <div>
-        <button type="button" class="btn primary" onclick={ondone}>
+        <button type="button" class="btn primary" onclick={ondone} disabled={isReadonly}>
           Done <kbd class="kbd-inline">x</kbd>
         </button>
-        <button type="button" class="btn" onclick={onedit}>
+        <button type="button" class="btn" onclick={onedit} disabled={isReadonly}>
           Edit <kbd class="kbd-inline">e</kbd>
         </button>
       </div>
@@ -254,8 +255,9 @@
     color: #fff;
   }
 
-  .btn.primary:hover {
-    background: #d63851;
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
   }
 
   .kbd-inline {

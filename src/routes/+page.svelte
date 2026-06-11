@@ -183,7 +183,7 @@
       if (showCardModal && key === "e") {
         e.preventDefault();
         const card = cards.find((c) => c.id === viewingCardId);
-        if (card) {
+        if (card && !card.archived && !card.doneAt) {
           showCardModal = false;
           openEditFor(card);
         }
@@ -191,7 +191,7 @@
       if (showCardModal && key === "x") {
         e.preventDefault();
         const card = cards.find((c) => c.id === viewingCardId);
-        if (card) {
+        if (card && !card.archived && !card.doneAt) {
           store.markDone(card.id);
           showCardModal = false;
           viewingCardId = null;
