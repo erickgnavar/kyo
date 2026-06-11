@@ -2,6 +2,20 @@ import { invoke } from "@tauri-apps/api/core";
 import type { CardStore } from "./card-store";
 import type { Card, ColumnId } from "./types.ts";
 
+/** Raw card shape returned by the Rust backend (snake_case fields). */
+interface RawCard {
+  id: number;
+  name: string;
+  content: string;
+  tags: string[];
+  column: string;
+  created_at: number;
+  due_date: string | null;
+  archived: boolean | null;
+  score: number;
+  done_at: number | null;
+}
+
 /** Tauri-backed CardStore — delegates all mutations to the Rust backend
  *  via IPC (invoke). Keeps a local cache for synchronous reads. */
 export function createTauriCardStore(): CardStore & { init: () => Promise<void> } {
@@ -18,7 +32,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
   }
 
   /** Parse a raw card from the backend (snake_case fields → camelCase). */
-  function _parse(raw: any): Card {
+  function _parse(raw: RawCard): Card {
     return {
       id: String(raw.id),
       name: raw.name,
@@ -65,7 +79,7 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     },
 
     async add(col: ColumnId, name: string, content: string, tags: string[], dueDate?: string) {
-      const raw = await invoke("add_card", {
+      const raw = await invoke<RawCard>("add_card", {
         column: col,
         name,
         content,
@@ -173,13 +187,13 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
 
     async endOfDay() {
       await invoke("end_of_day");
-      const raw = await invoke<any[]>("get_cards");
+      const raw = await invoke<RawCard[]>("get_cards");
       _cards = raw.map(_parse);
       _notify();
     },
 
     async getWeeklyReview(): Promise<Card[]> {
-      const raw = await invoke<any[]>("get_weekly_review");
+      const raw = await invoke<RawCard[]>("get_weekly_review");
       return raw.map(_parse);
     },
   };
