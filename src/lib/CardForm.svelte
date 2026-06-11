@@ -94,7 +94,7 @@
     placeholder="description (optional)"
     autocomplete="off"
     spellcheck="false"
-    rows={editMode ? 10 : 3}
+    rows="10"
   ></textarea>
 </label>
 
