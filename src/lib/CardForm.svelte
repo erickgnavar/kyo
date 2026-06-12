@@ -158,11 +158,11 @@
   input[type="text"],
   textarea,
   input[type="date"] {
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px 10px;
-    color: #e0e0e0;
+    color: var(--text);
     font: inherit;
     font-size: 13px;
     outline: none;
@@ -170,7 +170,7 @@
 
   input:focus,
   textarea:focus {
-    border-color: #e94560;
+    border-color: var(--accent);
   }
 
   textarea {
@@ -187,8 +187,8 @@
     left: 0;
     right: 0;
     margin-top: 2px;
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
     z-index: 50;
@@ -201,7 +201,7 @@
     padding: 6px 10px;
     border: none;
     background: transparent;
-    color: #ccc;
+    color: var(--text-muted);
     font: inherit;
     font-size: 12px;
     cursor: pointer;
@@ -209,7 +209,7 @@
 
   .suggestion.selected,
   .suggestion:hover {
-    background: #1e2a4a;
-    color: #fff;
+    background: var(--bg-hover);
+    color: var(--text);
   }
 </style>

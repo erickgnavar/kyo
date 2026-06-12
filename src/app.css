@@ -1,9 +1,40 @@
+/* --- design tokens --- */
+:root {
+  /* backgrounds */
+  --bg-base: #1a1a2e;
+  --bg-elevated: #16213e;
+  --bg-hover: #1e2a4a;
+  --bg-hover-active: #263050;
+  --bg-hover-selected: #2d3858;
+  --bg-deep: #0a0a1a;
+
+  /* border */
+  --border: #0f3460;
+
+  /* accent */
+  --accent: #e94560;
+  --accent-hover: #d63851;
+
+  /* text */
+  --text: #e0e0e0;
+  --text-muted: #ccc;
+  --text-dim: #888;
+  --text-empty: #555;
+
+  /* tag */
+  --tag-bg: #0f3460;
+  --tag-text: #88b4e0;
+
+  /* overlay */
+  --overlay: rgba(0, 0, 0, 0.6);
+}
+
 /* --- shared markdown styles --- */
 .markdown h1,
 .markdown h2,
 .markdown h3 {
   margin: 16px 0 8px;
-  color: #e0e0e0;
+  color: var(--text);
 }
 .markdown h1 {
   font-size: 18px;
@@ -16,26 +47,26 @@
 }
 .markdown p {
   margin: 0 0 8px;
-  color: #ccc;
+  color: var(--text-muted);
 }
 .markdown ul,
 .markdown ol {
   margin: 0 0 8px;
   padding-left: 20px;
-  color: #ccc;
+  color: var(--text-muted);
 }
 .markdown li {
   margin-bottom: 2px;
 }
 .markdown code {
   font-size: 12px;
-  background: #1a1a2e;
+  background: var(--bg-base);
   border-radius: 3px;
   padding: 1px 4px;
-  color: #e0e0e0;
+  color: var(--text);
 }
 .markdown pre {
-  background: #0a0a1a;
+  background: var(--bg-deep);
   border-radius: 6px;
   padding: 12px;
   overflow-x: auto;
@@ -53,13 +84,13 @@
   color: #99ccff;
 }
 .markdown blockquote {
-  border-left: 3px solid #0f3460;
+  border-left: 3px solid var(--border);
   margin: 8px 0;
   padding: 4px 12px;
   color: #aaa;
 }
 .markdown strong {
-  color: #e0e0e0;
+  color: var(--text);
 }
 .markdown table {
   width: 100%;
@@ -69,17 +100,17 @@
 }
 .markdown th,
 .markdown td {
-  border: 1px solid #0f3460;
+  border: 1px solid var(--border);
   padding: 6px 10px;
   text-align: left;
 }
 .markdown th {
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: var(--bg-base);
+  color: var(--text);
   font-weight: 600;
 }
 .markdown td {
-  color: #ccc;
+  color: var(--text-muted);
 }
 .markdown tr:nth-child(even) {
   background: rgba(255, 255, 255, 0.02);

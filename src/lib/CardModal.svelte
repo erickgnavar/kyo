@@ -91,7 +91,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -99,8 +99,8 @@
   }
 
   .dialog {
-    background: #16213e;
-    border: 1px solid #0f3460;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 24px;
     display: flex;
@@ -132,7 +132,7 @@
 
   .col-badge {
     font-size: 11px;
-    color: #e94560;
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
@@ -156,14 +156,14 @@
   .content {
     font-size: 14px;
     line-height: 1.6;
-    color: #ccc;
+    color: var(--text-muted);
     white-space: pre-wrap;
     margin: 0;
   }
 
   .empty-content {
     font-size: 13px;
-    color: #555;
+    color: var(--text-empty);
     font-style: italic;
     margin: 0;
   }
@@ -184,7 +184,7 @@
 
   .meta-block span {
     font-size: 10px;
-    color: #888;
+    color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -197,26 +197,26 @@
 
   .tag {
     font-size: 11px;
-    background: #0f3460;
-    color: #88b4e0;
+    background: var(--border);
+    color: var(--tag-text);
     border-radius: 4px;
     padding: 2px 6px;
   }
 
   .due-date {
     font-size: 13px;
-    color: #e94560;
+    color: var(--accent);
   }
 
   .score {
     font-size: 13px;
     font-weight: 700;
-    color: #e94560;
+    color: var(--accent);
   }
 
   .date {
     font-size: 13px;
-    color: #ccc;
+    color: var(--text-muted);
   }
 
   /* --- actions --- */
@@ -236,23 +236,23 @@
 
   .btn {
     padding: 8px 16px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border);
     border-radius: 6px;
     background: transparent;
-    color: #ccc;
+    color: var(--text-muted);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
   }
 
   .btn:hover {
-    background: #1e2a4a;
+    background: var(--bg-hover);
   }
 
   .btn.primary {
-    background: #e94560;
-    border-color: #e94560;
-    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--text);
   }
 
   .btn:disabled {
@@ -262,8 +262,8 @@
 
   .kbd-inline {
     font-size: 11px;
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 3px;
     padding: 0 4px;
     margin-left: 4px;

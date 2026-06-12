@@ -570,8 +570,8 @@
   :global(body) {
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 14px;
-    color: #e0e0e0;
-    background: #1a1a2e;
+    color: var(--text);
+    background: var(--bg-base);
     overflow: hidden;
     height: 100vh;
   }
@@ -587,8 +587,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
-    background: #16213e;
-    border-bottom: 1px solid #0f3460;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
   .header h1 {
@@ -602,11 +602,11 @@
   .app-icon {
     width: 20px;
     height: 20px;
-    color: #e94560;
+    color: var(--accent);
   }
   .shortcut-hint {
     font-size: 12px;
-    color: #888;
+    color: var(--text-dim);
   }
   .shortcut-hint kbd {
     margin: 0 2px 0 6px;
@@ -624,15 +624,15 @@
   .column {
     display: flex;
     flex-direction: column;
-    background: #16213e;
+    background: var(--bg-elevated);
     border-radius: 8px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border);
     overflow: hidden;
     opacity: 0.45;
     transition: opacity 0.1s;
   }
   .column.active {
-    border-color: #e94560;
+    border-color: var(--accent);
     opacity: 1;
   }
   .column-header {
@@ -640,8 +640,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 14px;
-    background: #1a1a2e;
-    border-bottom: 1px solid #0f3460;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
   .column-header h2 {
@@ -652,7 +652,7 @@
   }
   .count {
     font-size: 12px;
-    background: #0f3460;
+    background: var(--border);
     color: #aaa;
     border-radius: 10px;
     padding: 1px 8px;
@@ -671,8 +671,8 @@
     display: block;
     width: 100%;
     text-align: left;
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 10px 12px;
     cursor: pointer;
@@ -680,24 +680,24 @@
     font: inherit;
   }
   .card:hover {
-    background: #1e2a4a;
+    background: var(--bg-hover);
   }
   .card.selected {
-    border-color: #e94560;
-    background: #1e2a4a;
+    border-color: var(--accent);
+    background: var(--bg-hover);
   }
   .card.working {
-    border-left: 4px solid #e94560;
-    border-color: #e94560;
-    background: #263050;
+    border-left: 4px solid var(--accent);
+    border-color: var(--accent);
+    background: var(--bg-hover-active);
   }
   .card.working .card-name {
-    color: #fff;
+    color: var(--text);
     font-weight: 600;
   }
   .card.selected.working {
-    border-color: #e94560;
-    background: #2d3858;
+    border-color: var(--accent);
+    background: var(--bg-hover-selected);
   }
   .card-row {
     display: flex;
@@ -712,13 +712,13 @@
   }
   .card-due {
     font-size: 11px;
-    color: #e94560;
+    color: var(--accent);
     white-space: nowrap;
     flex-shrink: 0;
   }
   .empty {
     text-align: center;
-    color: #555;
+    color: var(--text-empty);
     font-size: 12px;
     padding: 20px 0;
   }
@@ -727,18 +727,18 @@
   .add-btn {
     margin: 8px;
     padding: 8px;
-    border: 1px dashed #0f3460;
+    border: 1px dashed var(--border);
     border-radius: 6px;
     background: transparent;
-    color: #888;
+    color: var(--text-dim);
     font: inherit;
     font-size: 12px;
     cursor: pointer;
     flex-shrink: 0;
   }
   .add-btn:hover {
-    border-color: #e94560;
-    color: #e0e0e0;
+    border-color: var(--accent);
+    color: var(--text);
   }
 
   /* --- footer --- */
@@ -747,8 +747,8 @@
     align-items: center;
     gap: 14px;
     padding: 8px 16px;
-    background: #16213e;
-    border-top: 1px solid #0f3460;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border);
     font-size: 11px;
     color: #666;
     flex-shrink: 0;
@@ -767,15 +767,15 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
   }
   .dialog {
-    background: #16213e;
-    border: 1px solid #0f3460;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 24px;
     min-width: 400px;
@@ -806,8 +806,8 @@
     flex: 1;
     overflow-y: auto;
     padding: 12px;
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 6px;
     min-height: 80px;
   }
@@ -826,30 +826,30 @@
 
   .btn {
     padding: 8px 16px;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border);
     border-radius: 6px;
     background: transparent;
-    color: #ccc;
+    color: var(--text-muted);
     font: inherit;
     font-size: 13px;
     cursor: pointer;
   }
   .btn:hover {
-    background: #1e2a4a;
+    background: var(--bg-hover);
   }
   .btn.primary {
-    background: #e94560;
-    border-color: #e94560;
-    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--text);
   }
   .btn.primary:hover {
-    background: #d63851;
+    background: var(--accent-hover);
   }
 
   .btn .shortcut-hint {
     font-size: 11px;
     margin-left: 6px;
-    color: #e6b3b3;
+    color: var(--accent);
   }
 
   /* --- help --- */
@@ -863,7 +863,7 @@
   .help-dialog td {
     padding: 6px 0;
     font-size: 13px;
-    border-bottom: 1px solid #0f3460;
+    border-bottom: 1px solid var(--border);
   }
   .help-dialog td:first-child {
     white-space: nowrap;
@@ -871,8 +871,8 @@
   }
   .help-dialog kbd {
     font-size: 11px;
-    background: #1a1a2e;
-    border: 1px solid #0f3460;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
     border-radius: 3px;
     padding: 1px 5px;
   }
@@ -880,9 +880,9 @@
   /* --- archive button in header --- */
   .archive-btn {
     background: transparent;
-    border: 1px solid #0f3460;
+    border: 1px solid var(--border);
     border-radius: 4px;
-    color: #888;
+    color: var(--text-dim);
     font: inherit;
     font-size: 11px;
     padding: 2px 8px;
@@ -890,7 +890,7 @@
     margin-left: 6px;
   }
   .archive-btn:hover {
-    border-color: #e94560;
-    color: #e0e0e0;
+    border-color: var(--accent);
+    color: var(--text);
   }
 </style>
