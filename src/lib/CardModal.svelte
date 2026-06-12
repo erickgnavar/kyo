@@ -69,6 +69,12 @@
           <span>Created</span>
           <span class="date">{new Date(card.createdAt).toLocaleDateString()}</span>
         </div>
+        {#if card.doneAt}
+          <div class="meta-block">
+            <span>Done</span>
+            <span class="date">{new Date(card.doneAt).toLocaleDateString()}</span>
+          </div>
+        {/if}
       </div>
     </div>
 
