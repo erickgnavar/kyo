@@ -291,8 +291,8 @@
   }
 
   .card-dialog {
-    min-width: 600px;
-    max-width: 680px;
+    width: 90%;
+    max-width: 1024px;
     max-height: 80vh;
   }
 
