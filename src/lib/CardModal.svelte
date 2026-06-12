@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { timeAgo } from "$lib/dates";
   import { handleMarkdownClick } from "$lib/links";
   import { marked } from "marked";
   import type { Card, Comment } from "$lib/types.ts";
@@ -150,9 +151,9 @@
                 </div>
                 <div class="comment-meta">
                   <span class="comment-time">
-                    {new Date(comment.createdAt).toLocaleString()}
+                    {timeAgo(comment.createdAt)}
                     {#if comment.editedAt}
-                      (edited)
+                      · edited {timeAgo(comment.editedAt)}
                     {/if}
                   </span>
                   {#if !isReadonly}
