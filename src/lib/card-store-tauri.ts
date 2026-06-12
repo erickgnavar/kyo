@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { CardStore } from "./card-store";
-import type { Card, ColumnId } from "./types.ts";
+import type { Card, ColumnId, Comment } from "./types.ts";
 
 /** Raw card shape returned by the Rust backend (snake_case fields). */
 interface RawCard {
@@ -14,6 +14,14 @@ interface RawCard {
   archived: boolean | null;
   score: number;
   done_at: number | null;
+}
+
+interface RawComment {
+  id: number;
+  card_id: number;
+  body: string;
+  created_at: number;
+  edited_at: number | null;
 }
 
 /** Tauri-backed CardStore — delegates all mutations to the Rust backend
@@ -195,6 +203,36 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     async getWeeklyReview(): Promise<Card[]> {
       const raw = await invoke<RawCard[]>("get_weekly_review");
       return raw.map(_parse);
+    },
+
+    async getComments(cardId: string): Promise<Comment[]> {
+      const raw = await invoke<RawComment[]>("get_comments", { cardId: Number(cardId) });
+      return raw.map((r) => ({
+        id: String(r.id),
+        cardId: String(r.card_id),
+        body: r.body,
+        createdAt: r.created_at,
+        editedAt: r.edited_at ?? undefined,
+      }));
+    },
+
+    async addComment(cardId: string, body: string): Promise<Comment> {
+      const raw = await invoke<RawComment>("add_comment", { cardId: Number(cardId), body });
+      return {
+        id: String(raw.id),
+        cardId: String(raw.card_id),
+        body: raw.body,
+        createdAt: raw.created_at,
+        editedAt: raw.edited_at ?? undefined,
+      };
+    },
+
+    async updateComment(commentId: string, body: string): Promise<void> {
+      await invoke("update_comment", { id: Number(commentId), body });
+    },
+
+    async deleteComment(commentId: string): Promise<void> {
+      await invoke("delete_comment", { id: Number(commentId) });
     },
   };
 }

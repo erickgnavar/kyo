@@ -42,6 +42,25 @@ fn row_to_card(row: &rusqlite::Row) -> rusqlite::Result<Card> {
     })
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Comment {
+    pub id: i64,
+    pub card_id: i64,
+    pub body: String,
+    pub created_at: i64,
+    pub edited_at: Option<i64>,
+}
+
+fn row_to_comment(row: &rusqlite::Row) -> rusqlite::Result<Comment> {
+    Ok(Comment {
+        id: row.get("id")?,
+        card_id: row.get("card_id")?,
+        body: row.get("body")?,
+        created_at: row.get("created_at")?,
+        edited_at: row.get("edited_at")?,
+    })
+}
+
 // ---------------------------------------------------------------------------
 // Migrations
 // ---------------------------------------------------------------------------
@@ -52,6 +71,7 @@ const MIGRATIONS: &[M] = &[
     M::up(include_str!("../migrations/003_add_done_at.sql")),
     M::up(include_str!("../migrations/004_drop_done_column.sql")),
     M::up(include_str!("../migrations/005_autoincrement_id.sql")),
+    M::up(include_str!("../migrations/006_add_comments.sql")),
 ];
 
 fn migrate(conn: &mut Connection) {
@@ -413,6 +433,62 @@ fn end_of_day(db: State<Mutex<Connection>>) {
 }
 
 // ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn get_comments(db: State<Mutex<Connection>>, card_id: i64) -> Vec<Comment> {
+    let conn = db.lock().unwrap();
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, card_id, body, created_at, edited_at
+             FROM comments WHERE card_id = ?1
+             ORDER BY created_at ASC",
+        )
+        .unwrap();
+    stmt.query_map(rusqlite::params![card_id], row_to_comment)
+        .unwrap()
+        .filter_map(|r| r.ok())
+        .collect()
+}
+
+#[tauri::command]
+fn add_comment(db: State<Mutex<Connection>>, card_id: i64, body: String) -> Comment {
+    let conn = db.lock().unwrap();
+    let now = now_ms() as i64;
+    conn.execute(
+        "INSERT INTO comments (card_id, body, created_at) VALUES (?1, ?2, ?3)",
+        rusqlite::params![card_id, body, now],
+    )
+    .unwrap();
+    let new_id = conn.last_insert_rowid();
+    conn.query_row(
+        "SELECT id, card_id, body, created_at, edited_at FROM comments WHERE id = ?1",
+        rusqlite::params![new_id],
+        row_to_comment,
+    )
+    .unwrap()
+}
+
+#[tauri::command]
+fn update_comment(db: State<Mutex<Connection>>, id: i64, body: String) {
+    let conn = db.lock().unwrap();
+    let now = now_ms() as i64;
+    conn.execute(
+        "UPDATE comments SET body = ?1, edited_at = ?2 WHERE id = ?3",
+        rusqlite::params![body, now, id],
+    )
+    .unwrap();
+}
+
+#[tauri::command]
+fn delete_comment(db: State<Mutex<Connection>>, id: i64) {
+    let conn = db.lock().unwrap();
+    conn.execute("DELETE FROM comments WHERE id = ?1", rusqlite::params![id])
+        .unwrap();
+}
+
+// ---------------------------------------------------------------------------
 // App entry point
 // ---------------------------------------------------------------------------
 
@@ -437,6 +513,10 @@ pub fn run() {
             unmark_done,
             end_of_day,
             get_weekly_review,
+            get_comments,
+            add_comment,
+            update_comment,
+            delete_comment,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

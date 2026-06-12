@@ -1,4 +1,4 @@
-import type { Card, ColumnId } from "./types.ts";
+import type { Card, ColumnId, Comment } from "./types.ts";
 
 // ---------------------------------------------------------------------------
 // Interface for the card data store.
@@ -40,4 +40,9 @@ export interface CardStore {
   unmarkDone(id: number | string): Promise<void>;
   endOfDay(): Promise<void>;
   getWeeklyReview(): Promise<Card[]>;
+
+  getComments(cardId: string): Promise<Comment[]>;
+  addComment(cardId: string, body: string): Promise<Comment>;
+  updateComment(commentId: string, body: string): Promise<void>;
+  deleteComment(commentId: string): Promise<void>;
 }

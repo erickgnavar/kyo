@@ -147,6 +147,16 @@
     rowIdx = store.getByColumn("backlog").length - 1;
   }
 
+  function isEditingText(): boolean {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName.toLowerCase();
+    if (tag === "textarea" || tag === "input") return true;
+    // Also check contenteditable
+    if ((el as HTMLElement).isContentEditable) return true;
+    return false;
+  }
+
   async function onKey(e: KeyboardEvent) {
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
@@ -183,7 +193,7 @@
         e.preventDefault();
         editPreview = !editPreview;
       }
-      if (showCardModal && key === "e") {
+      if (showCardModal && key === "e" && !isEditingText()) {
         e.preventDefault();
         const card = cards.find((c) => c.id === viewingCardId);
         if (card && !card.archived && !card.doneAt) {
@@ -191,7 +201,7 @@
           openEditFor(card);
         }
       }
-      if (showCardModal && key === "x") {
+      if (showCardModal && key === "x" && !isEditingText()) {
         e.preventDefault();
         const card = cards.find((c) => c.id === viewingCardId);
         if (card && !card.archived && !card.doneAt) {
@@ -440,6 +450,7 @@
     <CardModal
       {card}
       columns={COLUMNS}
+      {store}
       onclose={() => { showCardModal = false; viewingCardId = null; }}
       onedit={() => { showCardModal = false; openEditFor(card); }}
       ondone={async () => { await store.markDone(card.id); showCardModal = false; viewingCardId = null; }}

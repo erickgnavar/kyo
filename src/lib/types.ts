@@ -12,3 +12,11 @@ export interface Card {
   score?: number;
   doneAt?: number;
 }
+
+export interface Comment {
+  id: string;
+  cardId: string;
+  body: string;
+  createdAt: number;
+  editedAt?: number;
+}
