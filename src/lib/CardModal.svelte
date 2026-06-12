@@ -1,6 +1,7 @@
 <script lang="ts">
   import { timeAgo } from "$lib/dates";
   import { handleMarkdownClick } from "$lib/links";
+  import Overlay from "$lib/Overlay.svelte";
   import { marked } from "marked";
   import type { Card, Comment } from "$lib/types.ts";
   import type { CardStore } from "$lib/card-store";
@@ -86,109 +87,40 @@
   }
 </script>
 
-<div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div class="dialog card-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-    <!-- header -->
-    <div class="header">
-      <h3>{card.name}</h3>
-      <span class="col-badge">{columns.find((c) => c.id === card.column)?.title}</span>
-    </div>
+<Overlay {onclose} class="card-dialog">
+  <!-- header -->
+  <div class="header">
+    <h3>{card.name}</h3>
+    <span class="col-badge">{columns.find((c) => c.id === card.column)?.title}</span>
+  </div>
 
-    <!-- body: main + sidebar -->
-    <div class="body">
-      <div class="main">
-        {#if html}
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-          <div class="content markdown" onclick={handleMarkdownClick}>{@html html}</div>
-        {:else}
-          <p class="content empty-content">No description</p>
-        {/if}
+  <!-- body: main + sidebar -->
+  <div class="body">
+    <div class="main">
+      {#if html}
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="content markdown" onclick={handleMarkdownClick}>{@html html}</div>
+      {:else}
+        <p class="content empty-content">No description</p>
+      {/if}
 
-        <!-- comments section -->
-        <div class="comments-section">
-          <h4 class="comments-heading">Comments ({comments.length})</h4>
+      <!-- comments section -->
+      <div class="comments-section">
+        <h4 class="comments-heading">Comments ({comments.length})</h4>
 
-          {#each comments as comment (comment.id)}
-            <div class="comment">
-              {#if editingCommentId === comment.id}
-                {#if draftPreview}
-                  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-                  <div class="comment-body markdown" onclick={handleMarkdownClick}>
-                    {@html marked.parse(draftBody)}
-                  </div>
-                {:else}
-                  <textarea
-                    class="comment-input"
-                    bind:value={draftBody}
-                    placeholder="Edit comment (Markdown)"
-                    rows="3"
-                    onkeydown={onDraftKeydown}
-                  ></textarea>
-                {/if}
-                <div class="comment-actions">
-                  <button
-                    type="button"
-                    class="btn small"
-                    onclick={() => (draftPreview = !draftPreview)}
-                  >
-                    {draftPreview ? "Edit" : "Preview"}
-                  </button>
-                  <button type="button" class="btn small" onclick={resetDraft}>Cancel</button>
-                  <button
-                    type="button"
-                    class="btn small primary"
-                    onclick={submitDraft}
-                    disabled={!draftBody.trim()}
-                  >
-                    Save
-                    <kbd class="kbd-inline">⌘Enter</kbd>
-                  </button>
-                </div>
-              {:else}
-                <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-                <div class="comment-body markdown" onclick={handleMarkdownClick}>
-                  {@html marked.parse(comment.body)}
-                </div>
-                <div class="comment-meta">
-                  <span class="comment-time">
-                    {timeAgo(comment.createdAt)}
-                    {#if comment.editedAt}
-                      · edited {timeAgo(comment.editedAt)}
-                    {/if}
-                  </span>
-                  {#if !isReadonly}
-                    <span class="comment-actions">
-                      <button type="button" class="btn tiny" onclick={() => startEdit(comment)}>
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        class="btn tiny danger"
-                        onclick={() => deleteComment(comment.id)}
-                      >
-                        Delete
-                      </button>
-                    </span>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/each}
-
-          {#if !isReadonly}
-            <div class="comment-new">
-              {#if editingCommentId === null && draftPreview}
+        {#each comments as comment (comment.id)}
+          <div class="comment">
+            {#if editingCommentId === comment.id}
+              {#if draftPreview}
                 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
                 <div class="comment-body markdown" onclick={handleMarkdownClick}>
                   {@html marked.parse(draftBody)}
                 </div>
-              {/if}
-              {#if editingCommentId === null && !draftPreview}
+              {:else}
                 <textarea
                   class="comment-input"
                   bind:value={draftBody}
-                  placeholder="Add a comment (Markdown)"
+                  placeholder="Edit comment (Markdown)"
                   rows="3"
                   onkeydown={onDraftKeydown}
                 ></textarea>
@@ -198,101 +130,147 @@
                   type="button"
                   class="btn small"
                   onclick={() => (draftPreview = !draftPreview)}
-                  disabled={!draftBody.trim() && editingCommentId === null}
                 >
                   {draftPreview ? "Edit" : "Preview"}
                 </button>
+                <button type="button" class="btn small" onclick={resetDraft}>Cancel</button>
                 <button
                   type="button"
                   class="btn small primary"
                   onclick={submitDraft}
                   disabled={!draftBody.trim()}
                 >
-                  Add Comment
+                  Save
                   <kbd class="kbd-inline">⌘Enter</kbd>
                 </button>
               </div>
-            </div>
-          {/if}
-        </div>
-      </div>
-
-      <div class="sidebar">
-        {#if card.tags.length > 0}
-          <div class="meta-block">
-            <span>Tags</span>
-            <div class="tags">
-              {#each card.tags as tag}
-                <span class="tag">{tag}</span>
-              {/each}
-            </div>
+            {:else}
+              <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+              <div class="comment-body markdown" onclick={handleMarkdownClick}>
+                {@html marked.parse(comment.body)}
+              </div>
+              <div class="comment-meta">
+                <span class="comment-time">
+                  {timeAgo(comment.createdAt)}
+                  {#if comment.editedAt}
+                    · edited {timeAgo(comment.editedAt)}
+                  {/if}
+                </span>
+                {#if !isReadonly}
+                  <span class="comment-actions">
+                    <button type="button" class="btn tiny" onclick={() => startEdit(comment)}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="btn tiny danger"
+                      onclick={() => deleteComment(comment.id)}
+                    >
+                      Delete
+                    </button>
+                  </span>
+                {/if}
+              </div>
+            {/if}
           </div>
-        {/if}
+        {/each}
 
-        {#if card.dueDate}
-          <div class="meta-block">
-            <span>Due date</span>
-            <span class="due-date">{card.dueDate}</span>
-          </div>
-        {/if}
-
-        <div class="meta-block">
-          <span>Carried over</span>
-          <span class="score">{card.score ?? 0} ×</span>
-        </div>
-
-        <div class="meta-block">
-          <span>Created</span>
-          <span class="date">{new Date(card.createdAt).toLocaleDateString()}</span>
-        </div>
-        {#if card.doneAt}
-          <div class="meta-block">
-            <span>Done</span>
-            <span class="date">{new Date(card.doneAt).toLocaleDateString()}</span>
+        {#if !isReadonly}
+          <div class="comment-new">
+            {#if editingCommentId === null && draftPreview}
+              <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+              <div class="comment-body markdown" onclick={handleMarkdownClick}>
+                {@html marked.parse(draftBody)}
+              </div>
+            {/if}
+            {#if editingCommentId === null && !draftPreview}
+              <textarea
+                class="comment-input"
+                bind:value={draftBody}
+                placeholder="Add a comment (Markdown)"
+                rows="3"
+                onkeydown={onDraftKeydown}
+              ></textarea>
+            {/if}
+            <div class="comment-actions">
+              <button
+                type="button"
+                class="btn small"
+                onclick={() => (draftPreview = !draftPreview)}
+                disabled={!draftBody.trim() && editingCommentId === null}
+              >
+                {draftPreview ? "Edit" : "Preview"}
+              </button>
+              <button
+                type="button"
+                class="btn small primary"
+                onclick={submitDraft}
+                disabled={!draftBody.trim()}
+              >
+                Add Comment
+                <kbd class="kbd-inline">⌘Enter</kbd>
+              </button>
+            </div>
           </div>
         {/if}
       </div>
     </div>
 
-    <!-- actions -->
-    <div class="dialog-actions">
-      <button type="button" class="btn" onclick={onclose}>Close</button>
-      <div>
-        {#if !isReadonly}
-          <button type="button" class="btn" onclick={ondone}>
-            Done <kbd class="kbd-inline">x</kbd>
-          </button>
-          <button type="button" class="btn" onclick={onedit}>
-            Edit <kbd class="kbd-inline">e</kbd>
-          </button>
-        {/if}
+    <div class="sidebar">
+      {#if card.tags.length > 0}
+        <div class="meta-block">
+          <span>Tags</span>
+          <div class="tags">
+            {#each card.tags as tag}
+              <span class="tag">{tag}</span>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if card.dueDate}
+        <div class="meta-block">
+          <span>Due date</span>
+          <span class="due-date">{card.dueDate}</span>
+        </div>
+      {/if}
+
+      <div class="meta-block">
+        <span>Carried over</span>
+        <span class="score">{card.score ?? 0} ×</span>
       </div>
+
+      <div class="meta-block">
+        <span>Created</span>
+        <span class="date">{new Date(card.createdAt).toLocaleDateString()}</span>
+      </div>
+      {#if card.doneAt}
+        <div class="meta-block">
+          <span>Done</span>
+          <span class="date">{new Date(card.doneAt).toLocaleDateString()}</span>
+        </div>
+      {/if}
     </div>
   </div>
-</div>
+
+  <!-- actions -->
+  <div class="dialog-actions">
+    <button type="button" class="btn" onclick={onclose}>Close</button>
+    <div>
+      {#if !isReadonly}
+        <button type="button" class="btn" onclick={ondone}>
+          Done <kbd class="kbd-inline">x</kbd>
+        </button>
+        <button type="button" class="btn" onclick={onedit}>
+          Edit <kbd class="kbd-inline">e</kbd>
+        </button>
+      {/if}
+    </div>
+  </div>
+</Overlay>
 
 <style>
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  .dialog {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .card-dialog {
+  :global(.card-dialog) {
     width: 90%;
     max-width: 1024px;
     max-height: 80vh;

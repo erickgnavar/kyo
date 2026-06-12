@@ -4,6 +4,7 @@
   import CardListOverlay from "$lib/CardListOverlay.svelte";
   import CardModal from "$lib/CardModal.svelte";
   import CommandPalette from "$lib/CommandPalette.svelte";
+  import Overlay from "$lib/Overlay.svelte";
   import WeeklyReview from "$lib/WeeklyReview.svelte";
   import { relativeTime } from "$lib/dates";
   import { handleMarkdownClick } from "$lib/links";
@@ -375,72 +376,68 @@
 
 <!-- new card dialog -->
 {#if showNewDialog}
-  <div class="overlay" onclick={() => (showNewDialog = false)} role="dialog" tabindex="-1">
-    <div class="dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-      <h3>New Card</h3>
+  <Overlay onclose={() => (showNewDialog = false)} class="new-card-dialog">
+    <h3>New Card</h3>
+    <CardForm
+      bind:name={formName}
+      bind:content={formContent}
+      bind:tags={formTags}
+      bind:dueDate={formDueDate}
+      suggestions={allTags}
+    />
+    <div class="dialog-actions">
+      <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
+      <button type="button" class="btn primary" onclick={submitNewCard}>
+        Create
+        <span class="shortcut-hint"
+          >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
+        >
+      </button>
+    </div>
+  </Overlay>
+{/if}
+
+<!-- edit dialog -->
+{#if showEditDialog}
+  <Overlay onclose={() => (showEditDialog = false)} class="edit-dialog">
+    <div class="edit-header">
+      <h3>Edit Card</h3>
+      <button type="button" class="btn small" onclick={() => (editPreview = !editPreview)}>
+        {editPreview ? "Edit" : "Preview"}
+        <span class="shortcut-hint">{navigator.platform.includes("Mac") ? "⌘P" : "Ctrl+P"}</span>
+      </button>
+    </div>
+
+    {#if editPreview}
+      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <div class="edit-preview markdown" onclick={handleMarkdownClick}>
+        {#if formContent.trim()}
+          {@html marked.parse(formContent)}
+        {:else}
+          <p class="empty-content">No description</p>
+        {/if}
+      </div>
+    {:else}
       <CardForm
         bind:name={formName}
         bind:content={formContent}
         bind:tags={formTags}
         bind:dueDate={formDueDate}
+        editMode
         suggestions={allTags}
       />
-      <div class="dialog-actions">
-        <button type="button" class="btn" onclick={() => (showNewDialog = false)}>Cancel</button>
-        <button type="button" class="btn primary" onclick={submitNewCard}>
-          Create
-          <span class="shortcut-hint"
-            >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
-          >
-        </button>
-      </div>
+    {/if}
+
+    <div class="dialog-actions">
+      <button type="button" class="btn" onclick={() => (showEditDialog = false)}>Cancel</button>
+      <button type="button" class="btn primary" onclick={submitEdit}>
+        Save
+        <span class="shortcut-hint"
+          >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
+        >
+      </button>
     </div>
-  </div>
-{/if}
-
-<!-- edit dialog -->
-{#if showEditDialog}
-  <div class="overlay" onclick={() => (showEditDialog = false)} role="dialog" tabindex="-1">
-    <div class="dialog edit-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-      <div class="edit-header">
-        <h3>Edit Card</h3>
-        <button type="button" class="btn small" onclick={() => (editPreview = !editPreview)}>
-          {editPreview ? "Edit" : "Preview"}
-          <span class="shortcut-hint">{navigator.platform.includes("Mac") ? "⌘P" : "Ctrl+P"}</span>
-        </button>
-      </div>
-
-      {#if editPreview}
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="edit-preview markdown" onclick={handleMarkdownClick}>
-          {#if formContent.trim()}
-            {@html marked.parse(formContent)}
-          {:else}
-            <p class="empty-content">No description</p>
-          {/if}
-        </div>
-      {:else}
-        <CardForm
-          bind:name={formName}
-          bind:content={formContent}
-          bind:tags={formTags}
-          bind:dueDate={formDueDate}
-          editMode
-          suggestions={allTags}
-        />
-      {/if}
-
-      <div class="dialog-actions">
-        <button type="button" class="btn" onclick={() => (showEditDialog = false)}>Cancel</button>
-        <button type="button" class="btn primary" onclick={submitEdit}>
-          Save
-          <span class="shortcut-hint"
-            >{navigator.platform.includes("Mac") ? "⌘Enter" : "Ctrl+Enter"}</span
-          >
-        </button>
-      </div>
-    </div>
-  </div>
+  </Overlay>
 {/if}
 
 <!-- card modal -->
@@ -478,72 +475,70 @@
 
 <!-- help -->
 {#if showHelp}
-  <div class="overlay" onclick={() => (showHelp = false)} role="dialog" tabindex="-1">
-    <div class="dialog help-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-      <h3>Keyboard Shortcuts</h3>
-      <table>
-        <tbody>
-          <tr>
-            <td><kbd>j</kbd> / <kbd>k</kbd></td>
-            <td>Move selection up / down</td>
-          </tr>
-          <tr>
-            <td><kbd>⇧J</kbd></td>
-            <td>Move card down in list</td>
-          </tr>
-          <tr>
-            <td><kbd>⇧K</kbd></td>
-            <td>Move card up in list</td>
-          </tr>
-          <tr>
-            <td><kbd>h</kbd> / <kbd>l</kbd></td>
-            <td>Focus column left / right</td>
-          </tr>
-          <tr>
-            <td><kbd>t</kbd></td>
-            <td>Move card to <strong>Today</strong></td>
-          </tr>
-          <tr>
-            <td><kbd>b</kbd></td>
-            <td>Move card to <strong>Backlog</strong></td>
-          </tr>
-          <tr>
-            <td><kbd>Enter</kbd></td>
-            <td>Open card (read-only)</td>
-          </tr>
-          <tr>
-            <td><kbd>e</kbd> (in card)</td>
-            <td>Switch to edit mode</td>
-          </tr>
-          <tr>
-            <td><kbd>e</kbd></td>
-            <td>Edit card</td>
-          </tr>
-          <tr>
-            <td><kbd>x</kbd></td>
-            <td>Mark card done</td>
-          </tr>
-          <tr>
-            <td><kbd>d</kbd></td>
-            <td>Archive card</td>
-          </tr>
-          <tr>
-            <td><kbd>a</kbd></td>
-            <td>Toggle archived view</td>
-          </tr>
-          <tr>
-            <td><kbd>n</kbd></td>
-            <td>New card</td>
-          </tr>
-          <tr>
-            <td><kbd>?</kbd></td>
-            <td>Toggle this help</td>
-          </tr>
-        </tbody>
-      </table>
-      <button class="btn primary" onclick={() => (showHelp = false)}>Close</button>
-    </div>
-  </div>
+  <Overlay onclose={() => (showHelp = false)} class="help-dialog">
+    <h3>Keyboard Shortcuts</h3>
+    <table>
+      <tbody>
+        <tr>
+          <td><kbd>j</kbd> / <kbd>k</kbd></td>
+          <td>Move selection up / down</td>
+        </tr>
+        <tr>
+          <td><kbd>⇧J</kbd></td>
+          <td>Move card down in list</td>
+        </tr>
+        <tr>
+          <td><kbd>⇧K</kbd></td>
+          <td>Move card up in list</td>
+        </tr>
+        <tr>
+          <td><kbd>h</kbd> / <kbd>l</kbd></td>
+          <td>Focus column left / right</td>
+        </tr>
+        <tr>
+          <td><kbd>t</kbd></td>
+          <td>Move card to <strong>Today</strong></td>
+        </tr>
+        <tr>
+          <td><kbd>b</kbd></td>
+          <td>Move card to <strong>Backlog</strong></td>
+        </tr>
+        <tr>
+          <td><kbd>Enter</kbd></td>
+          <td>Open card (read-only)</td>
+        </tr>
+        <tr>
+          <td><kbd>e</kbd> (in card)</td>
+          <td>Switch to edit mode</td>
+        </tr>
+        <tr>
+          <td><kbd>e</kbd></td>
+          <td>Edit card</td>
+        </tr>
+        <tr>
+          <td><kbd>x</kbd></td>
+          <td>Mark card done</td>
+        </tr>
+        <tr>
+          <td><kbd>d</kbd></td>
+          <td>Archive card</td>
+        </tr>
+        <tr>
+          <td><kbd>a</kbd></td>
+          <td>Toggle archived view</td>
+        </tr>
+        <tr>
+          <td><kbd>n</kbd></td>
+          <td>New card</td>
+        </tr>
+        <tr>
+          <td><kbd>?</kbd></td>
+          <td>Toggle this help</td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn primary" onclick={() => (showHelp = false)}>Close</button>
+  </Overlay>
 {/if}
 
 <!-- archived overlay -->
@@ -774,34 +769,18 @@
     color: #444;
   }
 
-  /* --- overlay / dialog --- */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  .dialog {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    min-width: 400px;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .dialog h3 {
+  :global(.dialog h3) {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
   }
 
-  .edit-dialog {
+  :global(.new-card-dialog) {
+    min-width: 400px;
+    max-width: 480px;
+  }
+
+  :global(.edit-dialog) {
     min-width: 600px;
     max-width: 640px;
     min-height: 500px;
@@ -823,7 +802,7 @@
     min-height: 80px;
   }
 
-  .edit-dialog .dialog-actions {
+  :global(.edit-dialog .dialog-actions) {
     margin-top: auto;
   }
 
@@ -845,23 +824,23 @@
   }
 
   /* --- help --- */
-  .help-dialog {
+  :global(.help-dialog) {
     min-width: 360px;
   }
-  .help-dialog table {
+  :global(.help-dialog table) {
     width: 100%;
     border-collapse: collapse;
   }
-  .help-dialog td {
+  :global(.help-dialog td) {
     padding: 6px 0;
     font-size: 13px;
     border-bottom: 1px solid var(--border);
   }
-  .help-dialog td:first-child {
+  :global(.help-dialog td:first-child) {
     white-space: nowrap;
     padding-right: 20px;
   }
-  .help-dialog kbd {
+  :global(.help-dialog kbd) {
     font-size: 11px;
     background: var(--bg-base);
     border: 1px solid var(--border);

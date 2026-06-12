@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Overlay from "$lib/Overlay.svelte";
   import type { Card } from "$lib/types.ts";
 
   let {
@@ -22,67 +23,44 @@
   } = $props();
 </script>
 
-<div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div class="dialog archived-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-    <h3>{title}</h3>
+<Overlay {onclose} class="archived-dialog">
+  <h3>{title}</h3>
 
-    {#if cards.length === 0}
-      <p class="empty">no cards</p>
-    {:else}
-      <div class="list">
-        {#each cards as card (card.id)}
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-          <div class="item" class:clickable={!!oncardclick} onclick={() => oncardclick?.(card)}>
-            <div class="item-name">{card.name}</div>
-            {#if card.tags.length > 0}
-              <div class="tags">
-                {#each card.tags as tag}
-                  <span class="tag">{tag}</span>
-                {/each}
-              </div>
-            {/if}
-            <div class="actions">
-              <button type="button" class="btn primary small" onclick={() => restore(card)}>
-                {label}
-              </button>
-              {#if secondaryRestore}
-                <button type="button" class="btn small" onclick={() => secondaryRestore(card)}>
-                  {secondaryLabel}
-                </button>
-              {/if}
+  {#if cards.length === 0}
+    <p class="empty">no cards</p>
+  {:else}
+    <div class="list">
+      {#each cards as card (card.id)}
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="item" class:clickable={!!oncardclick} onclick={() => oncardclick?.(card)}>
+          <div class="item-name">{card.name}</div>
+          {#if card.tags.length > 0}
+            <div class="tags">
+              {#each card.tags as tag}
+                <span class="tag">{tag}</span>
+              {/each}
             </div>
+          {/if}
+          <div class="actions">
+            <button type="button" class="btn primary small" onclick={() => restore(card)}>
+              {label}
+            </button>
+            {#if secondaryRestore}
+              <button type="button" class="btn small" onclick={() => secondaryRestore(card)}>
+                {secondaryLabel}
+              </button>
+            {/if}
           </div>
-        {/each}
-      </div>
-    {/if}
+        </div>
+      {/each}
+    </div>
+  {/if}
 
-    <button type="button" class="btn primary" onclick={onclose}>Close</button>
-  </div>
-</div>
+  <button type="button" class="btn primary" onclick={onclose}>Close</button>
+</Overlay>
 
 <style>
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  .dialog {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .archived-dialog {
+  :global(.archived-dialog) {
     min-width: 420px;
     max-height: 70vh;
   }

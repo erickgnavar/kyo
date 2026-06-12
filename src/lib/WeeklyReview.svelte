@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Overlay from "$lib/Overlay.svelte";
   import type { Card } from "$lib/types.ts";
 
   let { cards, onclose }: { cards: Card[]; onclose: () => void } = $props();
@@ -43,70 +44,47 @@
   }
 </script>
 
-<div class="overlay" onclick={onclose} role="dialog" tabindex="-1">
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <div class="dialog review-dialog" onclick={(e) => e.stopPropagation()} role="presentation">
-    <div class="header">
-      <h3>Weekly Review</h3>
-      <span class="total">{cards.length} done this week</span>
-    </div>
-    <p class="note">Cards marked done in the last 7 days.</p>
-
-    <div class="body">
-      {#if grouped.length === 0}
-        <p class="empty">No cards completed this week yet.</p>
-      {:else}
-        {#each grouped as group}
-          <div class="day-group">
-            <h4 class="day-label">{group.label}</h4>
-            {#each group.cards as card}
-              <div class="review-card">
-                <span class="review-name">{card.name}</span>
-                {#if card.tags.length > 0}
-                  <span class="review-tags">
-                    {#each card.tags as tag}
-                      <span class="tag">{tag}</span>
-                    {/each}
-                  </span>
-                {/if}
-              </div>
-            {/each}
-          </div>
-        {/each}
-      {/if}
-    </div>
-
-    <div class="dialog-actions">
-      <button type="button" class="btn" onclick={copyAsMarkdown}>
-        {copied ? "Copied!" : "Copy as Markdown"}
-      </button>
-      <button type="button" class="btn primary" onclick={onclose}>Close</button>
-    </div>
+<Overlay {onclose} class="review-dialog">
+  <div class="header">
+    <h3>Weekly Review</h3>
+    <span class="total">{cards.length} done this week</span>
   </div>
-</div>
+  <p class="note">Cards marked done in the last 7 days.</p>
+
+  <div class="body">
+    {#if grouped.length === 0}
+      <p class="empty">No cards completed this week yet.</p>
+    {:else}
+      {#each grouped as group}
+        <div class="day-group">
+          <h4 class="day-label">{group.label}</h4>
+          {#each group.cards as card}
+            <div class="review-card">
+              <span class="review-name">{card.name}</span>
+              {#if card.tags.length > 0}
+                <span class="review-tags">
+                  {#each card.tags as tag}
+                    <span class="tag">{tag}</span>
+                  {/each}
+                </span>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      {/each}
+    {/if}
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn" onclick={copyAsMarkdown}>
+      {copied ? "Copied!" : "Copy as Markdown"}
+    </button>
+    <button type="button" class="btn primary" onclick={onclose}>Close</button>
+  </div>
+</Overlay>
 
 <style>
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  .dialog {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .review-dialog {
+  :global(.review-dialog) {
     min-width: 500px;
     max-width: 560px;
     max-height: 80vh;
