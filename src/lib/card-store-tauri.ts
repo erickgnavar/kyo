@@ -55,6 +55,16 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
     };
   }
 
+  function _parseComment(raw: RawComment): Comment {
+    return {
+      id: String(raw.id),
+      cardId: String(raw.card_id),
+      body: raw.body,
+      createdAt: raw.created_at,
+      editedAt: raw.edited_at ?? undefined,
+    };
+  }
+
   return {
     async init() {
       _cards = (await invoke<any[]>("get_cards")).map(_parse);
@@ -207,24 +217,12 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
 
     async getComments(cardId: string): Promise<Comment[]> {
       const raw = await invoke<RawComment[]>("get_comments", { cardId: Number(cardId) });
-      return raw.map((r) => ({
-        id: String(r.id),
-        cardId: String(r.card_id),
-        body: r.body,
-        createdAt: r.created_at,
-        editedAt: r.edited_at ?? undefined,
-      }));
+      return raw.map(_parseComment);
     },
 
     async addComment(cardId: string, body: string): Promise<Comment> {
       const raw = await invoke<RawComment>("add_comment", { cardId: Number(cardId), body });
-      return {
-        id: String(raw.id),
-        cardId: String(raw.card_id),
-        body: raw.body,
-        createdAt: raw.created_at,
-        editedAt: raw.edited_at ?? undefined,
-      };
+      return _parseComment(raw);
     },
 
     async updateComment(commentId: string, body: string): Promise<void> {
