@@ -29,6 +29,47 @@
   --overlay: rgba(0, 0, 0, 0.6);
 }
 
+/* --- shared button --- */
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--bg-hover);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.btn.primary:hover {
+  background: var(--accent-hover);
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.btn.small {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+.btn.tiny {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+.btn.danger {
+  color: var(--accent);
+}
+.btn.danger:hover {
+  background: rgba(233, 69, 96, 0.15);
+}
+
 /* --- shared markdown styles --- */
 .markdown h1,
 .markdown h2,

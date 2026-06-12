@@ -142,6 +142,7 @@
                     disabled={!draftBody.trim()}
                   >
                     Save
+                    <kbd class="kbd-inline">⌘Enter</kbd>
                   </button>
                 </div>
               {:else}
@@ -208,6 +209,7 @@
                   disabled={!draftBody.trim()}
                 >
                   Add Comment
+                  <kbd class="kbd-inline">⌘Enter</kbd>
                 </button>
               </div>
             </div>
@@ -448,29 +450,6 @@
     padding-top: 4px;
   }
 
-  .btn.small {
-    padding: 4px 10px;
-    font-size: 12px;
-  }
-
-  .btn.tiny {
-    padding: 2px 8px;
-    font-size: 11px;
-  }
-
-  .btn.danger {
-    color: var(--accent);
-  }
-
-  .btn.danger:hover {
-    background: rgba(233, 69, 96, 0.15);
-  }
-
-  .btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
   .sidebar {
     width: 160px;
     flex-shrink: 0;
@@ -537,32 +516,6 @@
     gap: 8px;
   }
 
-  .btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  .btn:hover {
-    background: var(--bg-hover);
-  }
-
-  .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--text);
-  }
-
-  .btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
   .kbd-inline {
     font-size: 11px;
     background: var(--bg-base);
@@ -570,5 +523,11 @@
     border-radius: 3px;
     padding: 0 4px;
     margin-left: 4px;
+    color: var(--text-dim);
+  }
+  .btn.primary .kbd-inline {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgba(0, 0, 0, 0.55);
   }
 </style>

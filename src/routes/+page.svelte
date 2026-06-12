@@ -835,32 +835,13 @@
     margin-top: 4px;
   }
 
-  .btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .btn:hover {
-    background: var(--bg-hover);
-  }
-  .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--text);
-  }
-  .btn.primary:hover {
-    background: var(--accent-hover);
-  }
-
   .btn .shortcut-hint {
     font-size: 11px;
     margin-left: 6px;
-    color: var(--accent);
+    color: var(--text-dim);
+  }
+  .btn.primary .shortcut-hint {
+    color: rgba(0, 0, 0, 0.45);
   }
 
   /* --- help --- */

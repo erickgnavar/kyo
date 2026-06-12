@@ -139,36 +139,6 @@
     margin-top: 8px;
   }
 
-  .btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  .btn:hover {
-    background: var(--bg-hover);
-  }
-
-  .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--text);
-  }
-
-  .btn.primary:hover {
-    background: var(--accent-hover);
-  }
-
-  .btn.small {
-    padding: 4px 10px;
-    font-size: 11px;
-  }
-
   .empty {
     text-align: center;
     color: var(--text-empty);
