@@ -211,6 +211,19 @@
           viewingCardId = null;
         }
       }
+      if (showCardModal && key === "d" && !isEditingText()) {
+        e.preventDefault();
+        const card = cards.find((c) => c.id === viewingCardId);
+        if (card) {
+          if (card.archived) {
+            await store.restore(card.id, "backlog");
+          } else if (!card.doneAt) {
+            await store.archive(card.id);
+          }
+          showCardModal = false;
+          viewingCardId = null;
+        }
+      }
       return;
     }
 
@@ -451,6 +464,15 @@
       onclose={() => { showCardModal = false; viewingCardId = null; }}
       onedit={() => { showCardModal = false; openEditFor(card); }}
       ondone={async () => { await store.markDone(card.id); showCardModal = false; viewingCardId = null; }}
+      onarchive={async () => {
+        if (card.archived) {
+          await store.restore(card.id, "backlog");
+        } else {
+          await store.archive(card.id);
+        }
+        showCardModal = false;
+        viewingCardId = null;
+      }}
     />
   {/if}
 {/if}

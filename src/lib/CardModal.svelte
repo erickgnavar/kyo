@@ -13,6 +13,7 @@
     onclose,
     onedit,
     ondone,
+    onarchive,
   }: {
     card: Card;
     columns: { id: string; title: string }[];
@@ -20,6 +21,7 @@
     onclose: () => void;
     onedit: () => void;
     ondone?: () => void;
+    onarchive?: () => void;
   } = $props();
 
   let html = $derived(card.content ? marked.parse(card.content) : "");
@@ -87,12 +89,17 @@
   <div class="dialog-actions">
     <button type="button" class="btn" onclick={onclose}>Close</button>
     <div>
-      {#if !isReadonly}
+      {#if card.archived}
+        <button type="button" class="btn" onclick={() => onarchive?.()}>Restore</button>
+      {:else if !isReadonly}
         <button type="button" class="btn" onclick={ondone}>
           Done <kbd class="kbd-inline">x</kbd>
         </button>
         <button type="button" class="btn" onclick={onedit}>
           Edit <kbd class="kbd-inline">e</kbd>
+        </button>
+        <button type="button" class="btn" onclick={() => onarchive?.()}>
+          Archive <kbd class="kbd-inline">d</kbd>
         </button>
       {/if}
     </div>
