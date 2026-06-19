@@ -167,7 +167,11 @@ export function createTauriCardStore(): CardStore & { init: () => Promise<void> 
         if (_cards[i].column === col && !_cards[i].archived && !_cards[i].doneAt) {
           await invoke("move_within_column", { id: _toNumber(id), direction });
           const arr = [..._cards];
-          [arr[idx], arr[i]] = [arr[i], arr[idx]];
+          const a = arr[idx],
+            b = arr[i];
+          // Swap positions and scores so backlog (sorted by score desc) reorders.
+          arr[idx] = { ...b, score: a.score ?? 0 };
+          arr[i] = { ...a, score: b.score ?? 0 };
           _cards = arr;
           _notify();
           return;

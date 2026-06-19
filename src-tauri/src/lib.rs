@@ -306,9 +306,8 @@ fn move_to_column(db: State<Mutex<Connection>>, id: i64, target: String) {
 
 #[tauri::command]
 fn move_within_column(db: State<Mutex<Connection>>, id: i64, direction: i8) {
-    let conn = db.lock().unwrap();
+    let mut conn = db.lock().unwrap();
 
-    // Read all visible cards in the same column in current order
     let col: String = conn
         .query_row(
             "SELECT column_name FROM cards WHERE id = ?1",
@@ -317,48 +316,45 @@ fn move_within_column(db: State<Mutex<Connection>>, id: i64, direction: i8) {
         )
         .unwrap();
 
-    let cards: Vec<(i64, i64)> = conn
+    // Backlog orders by -score, Today by sort_order, so both must move with
+    // the card for the reorder to be visible.
+    let cards: Vec<(i64, i64, i64)> = conn
         .prepare(
-            "SELECT id, sort_order FROM cards
+            "SELECT id, sort_order, score FROM cards
              WHERE column_name = ?1 AND archived = 0 AND done_at IS NULL
              ORDER BY sort_order",
         )
         .unwrap()
         .query_map(rusqlite::params![col], |row| {
-            let cid: i64 = row.get(0)?;
-            let order: i64 = row.get(1)?;
-            Ok((cid, order))
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
         })
         .unwrap()
         .filter_map(|r| r.ok())
         .collect();
 
-    let pos = cards.iter().position(|(cid, _)| cid == &id);
-    if pos.is_none() {
+    let Some(pos) = cards.iter().position(|(cid, _, _)| cid == &id) else {
         return;
-    }
-    let pos = pos.unwrap();
+    };
     let swap_pos = (pos as isize + direction as isize) as usize;
     if swap_pos >= cards.len() {
         return;
     }
 
-    let a_id = &cards[pos].0;
-    let b_id = &cards[swap_pos].0;
-    let a_order = cards[pos].1;
-    let b_order = cards[swap_pos].1;
+    let (a_id, a_order, a_score) = cards[pos];
+    let (b_id, b_order, b_score) = cards[swap_pos];
 
-    // Swap sort_orders
-    conn.execute(
-        "UPDATE cards SET sort_order = ?1 WHERE id = ?2",
-        rusqlite::params![a_order, b_id],
+    let tx = conn.transaction().unwrap();
+    tx.execute(
+        "UPDATE cards SET sort_order = ?1, score = ?2 WHERE id = ?3",
+        rusqlite::params![a_order, a_score, b_id],
     )
     .unwrap();
-    conn.execute(
-        "UPDATE cards SET sort_order = ?1 WHERE id = ?2",
-        rusqlite::params![b_order, a_id],
+    tx.execute(
+        "UPDATE cards SET sort_order = ?1, score = ?2 WHERE id = ?3",
+        rusqlite::params![b_order, b_score, a_id],
     )
     .unwrap();
+    tx.commit().unwrap();
 }
 
 #[tauri::command]
