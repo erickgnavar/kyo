@@ -163,7 +163,7 @@
 
   .note {
     font-size: 12px;
-    color: #666;
+    color: var(--text-dim);
     font-style: italic;
     margin: 0;
   }

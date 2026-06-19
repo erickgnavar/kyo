@@ -331,18 +331,20 @@
   <!-- header -->
   <header class="header">
     <h1><img src="/icon.svg" class="app-icon" alt="" /> kyo</h1>
-    <span class="shortcut-hint">
-      <kbd>?</kbd>
-      help
-      <kbd>n</kbd>
-      new card
+    <div class="header-actions">
+      <span class="shortcut-hint">
+        <kbd>?</kbd>
+        help
+        <kbd>n</kbd>
+        new card
+      </span>
       <button class="archive-btn" onclick={() => (showArchived = !showArchived)}>
         archived ({archivedCards.length})
       </button>
       <button class="archive-btn" onclick={() => (showDone = !showDone)}>
         done ({doneCards.length})
       </button>
-    </span>
+    </div>
   </header>
 
   <!-- columns -->
@@ -517,7 +519,16 @@
   <Overlay onclose={() => (showHelp = false)} class="help-dialog">
     <h3>Keyboard Shortcuts</h3>
     <table>
+      <thead>
+        <tr>
+          <th>Shortcut</th>
+          <th>Action</th>
+        </tr>
+      </thead>
       <tbody>
+        <tr class="section">
+          <td colspan="2">Global</td>
+        </tr>
         <tr>
           <td><kbd>j</kbd> / <kbd>k</kbd></td>
           <td>Move selection up / down</td>
@@ -547,12 +558,8 @@
           <td>Open card (read-only)</td>
         </tr>
         <tr>
-          <td><kbd>e</kbd> (in card)</td>
-          <td>Switch to edit mode</td>
-        </tr>
-        <tr>
           <td><kbd>e</kbd></td>
-          <td>Edit card</td>
+          <td>Edit selected card</td>
         </tr>
         <tr>
           <td><kbd>x</kbd></td>
@@ -573,6 +580,21 @@
         <tr>
           <td><kbd>?</kbd></td>
           <td>Toggle this help</td>
+        </tr>
+        <tr class="section">
+          <td colspan="2">In card modal</td>
+        </tr>
+        <tr>
+          <td><kbd>e</kbd></td>
+          <td>Switch to edit mode</td>
+        </tr>
+        <tr>
+          <td><kbd>x</kbd></td>
+          <td>Mark this card done</td>
+        </tr>
+        <tr>
+          <td><kbd>d</kbd></td>
+          <td>Archive this card</td>
         </tr>
       </tbody>
     </table>
@@ -656,6 +678,11 @@
   .shortcut-hint kbd {
     margin: 0 2px 0 6px;
   }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
   /* --- columns --- */
   .columns {
@@ -673,7 +700,7 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     overflow: hidden;
-    opacity: 0.45;
+    opacity: 0.65;
     transition: opacity 0.1s;
   }
   .column.active {
@@ -698,7 +725,7 @@
   .count {
     font-size: 12px;
     background: var(--border);
-    color: #aaa;
+    color: var(--text-muted);
     border-radius: 10px;
     padding: 1px 8px;
   }
@@ -757,7 +784,7 @@
   }
   .card-due {
     font-size: 11px;
-    color: var(--accent);
+    color: var(--danger);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -795,7 +822,7 @@
     background: var(--bg-elevated);
     border-top: 1px solid var(--border);
     font-size: 11px;
-    color: #666;
+    color: var(--text-dim);
     flex-shrink: 0;
   }
   .footer kbd {
@@ -805,7 +832,7 @@
   .footer span + span::before {
     content: "·";
     margin-right: 14px;
-    color: #444;
+    color: var(--text-empty);
   }
 
   :global(.dialog h3) {
@@ -859,7 +886,7 @@
     color: var(--text-dim);
   }
   .btn.primary .shortcut-hint {
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--on-accent-soft);
   }
 
   /* --- help --- */
@@ -870,6 +897,15 @@
     width: 100%;
     border-collapse: collapse;
   }
+  :global(.help-dialog thead th) {
+    text-align: left;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0 6px;
+    border-bottom: 1px solid var(--border);
+  }
   :global(.help-dialog td) {
     padding: 6px 0;
     font-size: 13px;
@@ -878,6 +914,15 @@
   :global(.help-dialog td:first-child) {
     white-space: nowrap;
     padding-right: 20px;
+  }
+  :global(.help-dialog tr.section td) {
+    padding-top: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: none;
   }
   :global(.help-dialog kbd) {
     font-size: 11px;
@@ -897,7 +942,6 @@
     font-size: 11px;
     padding: 2px 8px;
     cursor: pointer;
-    margin-left: 6px;
   }
   .archive-btn:hover {
     border-color: var(--accent);

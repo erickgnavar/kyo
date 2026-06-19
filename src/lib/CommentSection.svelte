@@ -247,7 +247,7 @@
 
   .comment-time {
     font-size: 11px;
-    color: #555;
+    color: var(--text-empty);
   }
 
   .comment-actions {
@@ -289,8 +289,8 @@
   }
 
   .btn.primary .kbd-inline {
-    background: rgba(0, 0, 0, 0.25);
-    border-color: rgba(0, 0, 0, 0.2);
-    color: rgba(0, 0, 0, 0.55);
+    background: var(--on-accent-chip);
+    border-color: var(--on-accent-chip);
+    color: var(--on-accent-soft);
   }
 </style>

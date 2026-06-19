@@ -142,7 +142,7 @@
     flex-direction: column;
     gap: 4px;
     font-size: 12px;
-    color: #aaa;
+    color: var(--text-muted);
   }
 
   label.grow {

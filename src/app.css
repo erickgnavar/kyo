@@ -1,6 +1,95 @@
-/* --- design tokens --- */
+/* --- design tokens ---
+   Light is the default; dark tokens apply via prefers-color-scheme or a
+   manual [data-theme] override on <html>. `--accent` is the neutral focus /
+   selection / primary-action color; `--danger` is reserved for destructive
+   actions and due-date urgency. */
 :root {
   /* backgrounds */
+  --bg-base: #ffffff;
+  --bg-elevated: #f6f7f9;
+  --bg-hover: #eceef2;
+  --bg-hover-active: #e2e6ec;
+  --bg-hover-selected: #dde3eb;
+  --bg-deep: #e8ebf0;
+
+  /* border */
+  --border: #d6dbe3;
+
+  /* accent (selection / focus / primary / brand) */
+  --accent: #3b6fd4;
+  --accent-hover: #2f5fb0;
+  /* text/chips rendered on top of --accent (primary buttons) */
+  --on-accent: #ffffff;
+  --on-accent-soft: rgba(255, 255, 255, 0.75);
+  --on-accent-chip: rgba(255, 255, 255, 0.25);
+
+  /* danger (destructive / due-date urgency) */
+  --danger: #d63851;
+  --danger-hover: #b82c3f;
+  --danger-tint: rgba(214, 56, 81, 0.12);
+
+  /* text */
+  --text: #1a1f2e;
+  --text-muted: #4a5360;
+  --text-dim: #6b7280;
+  --text-empty: #9aa3b0;
+
+  /* tag */
+  --tag-bg: #e2e8f0;
+  --tag-text: #3a5a8a;
+
+  /* link */
+  --link: #2563eb;
+  --link-hover: #1d4ed8;
+
+  /* row stripe for markdown tables */
+  --row-stripe: rgba(0, 0, 0, 0.03);
+
+  /* overlay */
+  --overlay: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark palette: used when the OS prefers dark, unless explicitly overridden. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-base: #1a1a2e;
+    --bg-elevated: #16213e;
+    --bg-hover: #1e2a4a;
+    --bg-hover-active: #263050;
+    --bg-hover-selected: #2d3858;
+    --bg-deep: #0a0a1a;
+
+    --border: #0f3460;
+
+    --accent: #6d9bff;
+    --accent-hover: #5b8def;
+    --on-accent: #0a1a3a;
+    --on-accent-soft: rgba(0, 0, 0, 0.55);
+    --on-accent-chip: rgba(0, 0, 0, 0.25);
+
+    --danger: #e94560;
+    --danger-hover: #d63851;
+    --danger-tint: rgba(233, 69, 96, 0.15);
+
+    --text: #e0e0e0;
+    --text-muted: #ccc;
+    --text-dim: #888;
+    --text-empty: #555;
+
+    --tag-bg: #0f3460;
+    --tag-text: #88b4e0;
+
+    --link: #66b3ff;
+    --link-hover: #99ccff;
+
+    --row-stripe: rgba(255, 255, 255, 0.02);
+
+    --overlay: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Manual dark override (e.g. set via document.documentElement.dataset.theme). */
+:root[data-theme="dark"] {
   --bg-base: #1a1a2e;
   --bg-elevated: #16213e;
   --bg-hover: #1e2a4a;
@@ -8,24 +97,31 @@
   --bg-hover-selected: #2d3858;
   --bg-deep: #0a0a1a;
 
-  /* border */
   --border: #0f3460;
 
-  /* accent */
-  --accent: #e94560;
-  --accent-hover: #d63851;
+  --accent: #6d9bff;
+  --accent-hover: #5b8def;
+  --on-accent: #0a1a3a;
+  --on-accent-soft: rgba(0, 0, 0, 0.55);
+  --on-accent-chip: rgba(0, 0, 0, 0.25);
 
-  /* text */
+  --danger: #e94560;
+  --danger-hover: #d63851;
+  --danger-tint: rgba(233, 69, 96, 0.15);
+
   --text: #e0e0e0;
   --text-muted: #ccc;
   --text-dim: #888;
   --text-empty: #555;
 
-  /* tag */
   --tag-bg: #0f3460;
   --tag-text: #88b4e0;
 
-  /* overlay */
+  --link: #66b3ff;
+  --link-hover: #99ccff;
+
+  --row-stripe: rgba(255, 255, 255, 0.02);
+
   --overlay: rgba(0, 0, 0, 0.6);
 }
 
@@ -66,7 +162,7 @@
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--text);
+  color: var(--on-accent);
 }
 .btn.primary:hover {
   background: var(--accent-hover);
@@ -84,10 +180,10 @@
   font-size: 11px;
 }
 .btn.danger {
-  color: var(--accent);
+  color: var(--danger);
 }
 .btn.danger:hover {
-  background: rgba(233, 69, 96, 0.15);
+  background: var(--danger-tint);
 }
 
 /* --- shared markdown styles --- */
@@ -138,17 +234,17 @@
   padding: 0;
 }
 .markdown a {
-  color: #66b3ff;
+  color: var(--link);
   text-decoration: underline;
 }
 .markdown a:hover {
-  color: #99ccff;
+  color: var(--link-hover);
 }
 .markdown blockquote {
   border-left: 3px solid var(--border);
   margin: 8px 0;
   padding: 4px 12px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 .markdown strong {
   color: var(--text);
@@ -174,5 +270,5 @@
   color: var(--text-muted);
 }
 .markdown tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--row-stripe);
 }

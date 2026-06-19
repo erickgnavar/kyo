@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Card } from "$lib/types.ts";
+  import { fade, scale } from "svelte/transition";
 
   let {
     cards = [],
@@ -159,8 +160,14 @@
   onkeydown={(e) => e.key === "Escape" && onclose()}
   role="dialog"
   tabindex="-1"
+  transition:fade={{ duration: 120 }}
 >
-  <div class="palette" onclick={(e) => e.stopPropagation()} role="presentation">
+  <div
+    class="palette"
+    onclick={(e) => e.stopPropagation()}
+    role="presentation"
+    transition:scale={{ duration: 140, start: 0.97 }}
+  >
     <input
       type="text"
       class="search"
@@ -220,7 +227,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay);
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -229,8 +236,8 @@
   }
 
   .palette {
-    background: #16213e;
-    border: 1px solid #0f3460;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
     border-radius: 10px;
     width: 480px;
     max-height: 60vh;
@@ -241,18 +248,18 @@
   }
 
   .search {
-    background: #1a1a2e;
+    background: var(--bg-base);
     border: none;
-    border-bottom: 1px solid #0f3460;
+    border-bottom: 1px solid var(--border);
     padding: 14px 16px;
-    color: #e0e0e0;
+    color: var(--text);
     font: inherit;
     font-size: 15px;
     outline: none;
   }
 
   .search::placeholder {
-    color: #555;
+    color: var(--text-empty);
   }
 
   .list {
@@ -279,11 +286,11 @@
   }
 
   .item.selected {
-    background: #1e2a4a;
+    background: var(--bg-hover);
   }
 
   .item:hover {
-    background: #1e2a4a;
+    background: var(--bg-hover);
   }
 
   .item.row {
@@ -300,17 +307,17 @@
   .label {
     font-size: 14px;
     font-weight: 500;
-    color: #e0e0e0;
+    color: var(--text);
   }
 
   .desc {
     font-size: 11px;
-    color: #888;
+    color: var(--text-dim);
   }
 
   .empty {
     text-align: center;
-    color: #555;
+    color: var(--text-empty);
     font-size: 13px;
     padding: 20px 0;
   }
