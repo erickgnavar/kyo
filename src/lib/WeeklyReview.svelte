@@ -34,25 +34,7 @@
   let copied = $state(false);
   let copiedComments = $state(false);
 
-  async function handleCopyWithoutComments() {
-    const now = new Date();
-    const header = `# Weekly Review — ${now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`;
-    const lines: string[] = [header, ""];
-
-    for (const group of grouped) {
-      lines.push(`## ${group.label}`);
-      for (const card of group.cards) {
-        const tags = card.tags.length > 0 ? " " + card.tags.map((t) => `\`#${t}\``).join(" ") : "";
-        lines.push(`- ${card.name}${tags}`);
-      }
-      lines.push("");
-    }
-    await navigator.clipboard.writeText(lines.join("\n"));
-    copied = true;
-    setTimeout(() => (copied = false), 1500);
-  }
-
-  async function handleCopyWithComments() {
+  function buildMarkdown(includeComments: boolean): string[] {
     const now = new Date();
     const header = `# Weekly Review — ${now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`;
     const lines: string[] = [header, ""];
@@ -63,20 +45,31 @@
         const tags = card.tags.length > 0 ? " " + card.tags.map((t) => `\`#${t}\``).join(" ") : "";
         lines.push(`- ${card.name}${tags}`);
 
-        const cardComments = commentsByCard.get(card.id) ?? [];
-        for (const comment of cardComments) {
-          const date = new Date(comment.createdAt);
-          const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          const commentLines = comment.body.split("\n");
-          for (const line of commentLines) {
-            lines.push(`  - _(${dateStr})_ ${line}`);
+        if (includeComments) {
+          const cardComments = commentsByCard.get(card.id) ?? [];
+          for (const comment of cardComments) {
+            const date = new Date(comment.createdAt);
+            const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            for (const line of comment.body.split("\n")) {
+              lines.push(`  - _(${dateStr})_ ${line}`);
+            }
           }
         }
       }
       lines.push("");
     }
 
-    await navigator.clipboard.writeText(lines.join("\n"));
+    return lines;
+  }
+
+  async function handleCopyWithoutComments() {
+    await navigator.clipboard.writeText(buildMarkdown(false).join("\n"));
+    copied = true;
+    setTimeout(() => (copied = false), 1500);
+  }
+
+  async function handleCopyWithComments() {
+    await navigator.clipboard.writeText(buildMarkdown(true).join("\n"));
     copiedComments = true;
     setTimeout(() => (copiedComments = false), 1500);
   }
