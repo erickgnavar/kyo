@@ -92,13 +92,21 @@
           {#each group.cards as card}
             <div class="review-card">
               <span class="review-name">{card.name}</span>
-              {#if card.tags.length > 0}
-                <span class="review-tags">
-                  {#each card.tags as tag}
-                    <span class="tag">{tag}</span>
-                  {/each}
-                </span>
-              {/if}
+              <div class="review-meta">
+                {#if (commentsByCard.get(card.id)?.length ?? 0) > 0}
+                  <span class="comment-count" title="comments">
+                    {commentsByCard.get(card.id)!.length}
+                    💬
+                  </span>
+                {/if}
+                {#if card.tags.length > 0}
+                  <span class="review-tags">
+                    {#each card.tags as tag}
+                      <span class="tag">{tag}</span>
+                    {/each}
+                  </span>
+                {/if}
+              </div>
             </div>
           {/each}
         </div>
@@ -196,6 +204,18 @@
     display: flex;
     gap: 4px;
     flex-shrink: 0;
+  }
+
+  .review-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .comment-count {
+    font-size: 11px;
+    color: var(--text-dim);
   }
 
   .tag {
