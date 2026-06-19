@@ -11,7 +11,7 @@
   import { marked } from "marked";
   import type { CardStore } from "$lib/card-store";
   import { createTauriCardStore } from "$lib/card-store-tauri";
-  import type { Card, ColumnId } from "$lib/types.ts";
+  import type { Card, ColumnId, Comment } from "$lib/types.ts";
 
   type ColumnView = { id: string; title: string };
 
@@ -61,6 +61,7 @@
   let showCommandPalette = $state(false);
   let showWeeklyReview = $state(false);
   let weeklyReviewCards = $state<Card[]>([]);
+  let weeklyReviewComments = $state<Map<string, Comment[]>>(new Map());
   let editPreview = $state(false);
 
   // form fields (shared between new & edit via CardForm bindings)
@@ -98,7 +99,18 @@
   }
 
   async function openWeeklyReview() {
-    weeklyReviewCards = await store.getWeeklyReview();
+    const cards = await store.getWeeklyReview();
+    const map = new Map<string, Comment[]>();
+    for (const card of cards) {
+      try {
+        const comments = await store.getComments(card.id);
+        map.set(card.id, comments);
+      } catch {
+        map.set(card.id, []);
+      }
+    }
+    weeklyReviewCards = cards;
+    weeklyReviewComments = map;
     showWeeklyReview = true;
   }
 
@@ -492,7 +504,11 @@
 
 <!-- weekly review -->
 {#if showWeeklyReview}
-  <WeeklyReview cards={weeklyReviewCards} onclose={() => (showWeeklyReview = false)} />
+  <WeeklyReview
+    cards={weeklyReviewCards}
+    commentsByCard={weeklyReviewComments}
+    onclose={() => (showWeeklyReview = false)}
+  />
 {/if}
 
 <!-- help -->
