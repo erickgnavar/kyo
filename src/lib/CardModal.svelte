@@ -1,5 +1,6 @@
 <script lang="ts">
   import CommentSection from "$lib/CommentSection.svelte";
+  import { shortDate } from "$lib/dates";
   import { handleMarkdownClick } from "$lib/links";
   import Overlay from "$lib/Overlay.svelte";
   import { marked } from "marked";
@@ -74,12 +75,12 @@
 
       <div class="meta-block">
         <span>Created</span>
-        <span class="date">{new Date(card.createdAt).toLocaleDateString()}</span>
+        <span class="date">{shortDate(card.createdAt)}</span>
       </div>
       {#if card.doneAt}
         <div class="meta-block">
           <span>Done</span>
-          <span class="date">{new Date(card.doneAt).toLocaleDateString()}</span>
+          <span class="date">{shortDate(card.doneAt)}</span>
         </div>
       {/if}
     </div>

@@ -30,5 +30,10 @@ export function timeAgo(ts: number): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return "yesterday";
   if (days < 30) return `${days} days ago`;
+  return shortDate(ts);
+}
+
+/** Formats a timestamp or Date as a short label like "Jun 15". */
+export function shortDate(ts: number | Date): string {
   return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

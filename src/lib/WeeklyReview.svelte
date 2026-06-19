@@ -1,5 +1,6 @@
 <script lang="ts">
   import Overlay from "$lib/Overlay.svelte";
+  import { shortDate } from "$lib/dates";
   import type { Card, Comment } from "$lib/types.ts";
 
   let {
@@ -48,8 +49,7 @@
         if (includeComments) {
           const cardComments = commentsByCard.get(card.id) ?? [];
           for (const comment of cardComments) {
-            const date = new Date(comment.createdAt);
-            const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            const dateStr = shortDate(comment.createdAt);
             for (const line of comment.body.split("\n")) {
               lines.push(`  - _(${dateStr})_ ${line}`);
             }
