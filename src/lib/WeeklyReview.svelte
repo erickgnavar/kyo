@@ -5,13 +5,15 @@
 
   let {
     cards,
-    commentsByCard = new Map(),
+    commentsByCard,
     onclose,
   }: {
     cards: Card[];
     commentsByCard?: Map<string, Comment[]>;
     onclose: () => void;
   } = $props();
+
+  let comments = $derived(commentsByCard ?? new Map());
 
   let grouped = $derived.by(() => {
     const groups: { label: string; cards: Card[] }[] = [];
@@ -47,7 +49,7 @@
         lines.push(`- ${card.name}${tags}`);
 
         if (includeComments) {
-          const cardComments = commentsByCard.get(card.id) ?? [];
+          const cardComments = comments.get(card.id) ?? [];
           for (const comment of cardComments) {
             const dateStr = shortDate(comment.createdAt);
             for (const line of comment.body.split("\n")) {
@@ -93,9 +95,9 @@
             <div class="review-card">
               <span class="review-name">{card.name}</span>
               <div class="review-meta">
-                {#if (commentsByCard.get(card.id)?.length ?? 0) > 0}
+                {#if (comments.get(card.id)?.length ?? 0) > 0}
                   <span class="comment-count" title="comments">
-                    {commentsByCard.get(card.id)!.length}
+                    {comments.get(card.id)!.length}
                     💬
                   </span>
                 {/if}
