@@ -52,8 +52,11 @@
           const cardComments = comments.get(card.id) ?? [];
           for (const comment of cardComments) {
             const dateStr = shortDate(comment.createdAt);
-            for (const line of comment.body.split("\n")) {
-              lines.push(`  - _(${dateStr})_ ${line}`);
+            const bodyLines = comment.body.split("\n").filter((l: string) => l.trim() !== "");
+            if (bodyLines.length === 0) continue;
+            lines.push(`  - _(${dateStr})_ ${bodyLines[0]}`);
+            for (let i = 1; i < bodyLines.length; i++) {
+              lines.push(`    ${bodyLines[i]}`);
             }
           }
         }
