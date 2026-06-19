@@ -1906,7 +1906,7 @@ dependencies = [
 
 [[package]]
 name = "kyo"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "rusqlite",
  "rusqlite_migration",
