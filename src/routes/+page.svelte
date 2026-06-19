@@ -100,17 +100,18 @@
 
   async function openWeeklyReview() {
     const cards = await store.getWeeklyReview();
-    const map = new Map<string, Comment[]>();
-    for (const card of cards) {
-      try {
-        const comments = await store.getComments(card.id);
-        map.set(card.id, comments);
-      } catch {
-        map.set(card.id, []);
-      }
-    }
+    // Fetch all comments in parallel rather than serializing N IPC round-trips.
+    const entries: [string, Comment[]][] = await Promise.all(
+      cards.map(async (card): Promise<[string, Comment[]]> => {
+        try {
+          return [card.id, await store.getComments(card.id)];
+        } catch {
+          return [card.id, []];
+        }
+      }),
+    );
     weeklyReviewCards = cards;
-    weeklyReviewComments = map;
+    weeklyReviewComments = new Map(entries);
     showWeeklyReview = true;
   }
 
